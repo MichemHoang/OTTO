@@ -163,16 +163,24 @@ int	EvaluateBOARD	(BOARD A, int side){
 	if ((AttackRay[2][KingPos] & Pawn[0]) != 0) a += 90;
 	if (KingPos%8 != 7) if ((AttackRay[2][KingPos + 1] & Pawn[0]) != 0) a += 60;
 	if (KingPos%8 != 0) if ((AttackRay[2][KingPos - 1] & Pawn[0]) != 0) a += 60;
-	if (A.Pieces[bQ]	==	0) a	*= 0.5;
+	if (A.Pieces[bQ]	==	0) a	*= 0.8;
+	
+	int d =  PopsCount(King_AttackMask[KingPos] & A.CurrentBoard[0]);
+	d *= 30;
 	
 	KingPos	=	LSBit(A.Pieces[bK]);
 	if ((AttackRay[6][KingPos] & Pawn[1]) != 0) b -= 90;
 	if (KingPos%8 != 7) if ((AttackRay[6][KingPos + 1] & Pawn[1]) != 0) b -= 60;
 	if (KingPos%8 != 0) if ((AttackRay[6][KingPos - 1] & Pawn[1]) != 0) b -= 60;
-	if (A.Pieces[wQ]	==	0) b	*= 0.5;
-	KING_SAFETY	=	a + b;
+	if (A.Pieces[wQ]	==	0) b	*= 0.8;
+	int e =  PopsCount(King_AttackMask[KingPos] & A.CurrentBoard[1]);
+	e *= -30;
+	
+	KING_SAFETY	=	a + b + d + e;
+	
 	if (A.No_Ply < 12) KING_SAFETY*= 0.3;
-	if (A.No_Ply > 70) KING_SAFETY*= 0.5;
+	if (A.No_Ply > 70) KING_SAFETY*= 0.7;
+	
 	
 	TOTAL_SCORE	=	MATERIAL_BALANCE + PAWN_STRUCTURE + CENTER_CONTROL + MOBILITY + CASTLING + KING_SAFETY + PSQR_VALUE + BLK_PWN;
 	side	==	BLACK ? TOTAL_SCORE *= -1 : TOTAL_SCORE *= 	1;

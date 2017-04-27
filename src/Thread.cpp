@@ -13,7 +13,6 @@ void		InitBoard()				{
 
 void Init_engine(){
 	cout	<< "MICHEM 1.5 ALPHA ACTIVATED\n";
-	cout	<< "New Template added\n";
 	GenerateMask();
 	InitZoBrist(true);
 	INIT_BOOK();

@@ -1,8 +1,9 @@
 #ifndef TRANSPOSITION_H_
 #define TRANSPOSITION_H_
 
-#include "typedefs.h"
 #include <unordered_map>
+
+#include "typedefs.h"
 #include "BitBoard.h"
 
 
@@ -18,30 +19,15 @@
 #define UPPERBOUND	3
  
 struct HashEntry{
-	bool		Flag;
-	uint64_t	HashValue;
-	int			Evaluation;
-	uint8_t		Depth;
-	Move		BestMove;
+	bool		Flag;			//Old node
+	uint64_t	HashValue;		
+	int			Evaluation;		
+	uint8_t		Depth;			
+	Move		BestMove;		
 	uint8_t		Node_Type;	
 };
 
 extern int 	yolo;
-
-class DATABASES{
- private:
-	int Database_Size;
-	std::unordered_map<int, HashEntry> HashTable;
- public:
-	DATABASES		()	;
-	DATABASES		(int A)	;
-	void		addEntry(Key ZobristHash, int eval, uint8_t Depth, uint8_t Node_Type, Move BestMove);
-	int			HashFunction( Key Hashkey)	;
-	int			getSize		(	)	;
-	bool		FindEntry	( Key Hashkey, HashEntry *Result)  ;
-	void		UpdateTable	( )	;	// Updating table after every Move so that it wont be filled with old useless entry;
-	void		PrintDatabase( );	//just for testing. Aint nobody got time to read 10000000000 entry.
-};
 
 template <typename T, typename HKey> 
 class HASH_TABLE{

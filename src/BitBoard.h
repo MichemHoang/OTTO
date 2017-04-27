@@ -2,6 +2,7 @@
 #define BITBOARD_H_
 
 #include <stdint.h>
+
 #include "typedefs.h"
 
 /*
@@ -9,6 +10,7 @@
  * Bit level manipulation
  * Important BitBoard value
  */
+ 
 extern uint8_t	BitCount[65536];
 extern BitBoard Rook_AttackMask[64];
 extern BitBoard Knight_AttackMask[64];

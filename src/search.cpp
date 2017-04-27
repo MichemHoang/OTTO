@@ -1,7 +1,8 @@
 #include "search.h"
-#include <time.h>
 
 HASH_TABLE<HashEntry, Key> TRANS_TABLE(4000000);
+int History_heristic[64][64];
+
 int			Out_Of_Time;
 int			Database_hit;
 int			Counter;
@@ -75,7 +76,7 @@ pair<Move, int>	DEEPENING_SEARCH (BOARD A, int MAX_DEPTH, int choo, Move Draw){
 		if (inc == 2)	{
 			cout << "Shallow search\n"; DecodeMove(DES_MOVE.first);
 			int TimeLimit	=	time(&now) - Timer;
-			if (TimeLimit > 150) {cout	<< "Exceed Time Limit, break\n"; break;}
+			if (TimeLimit > 60) {cout	<< "Exceed Time Limit, break\n"; break;}
 			lotterySeed	=	BestMove[0].second - BestMove[1].second + 4;
 		}
 		if (Out_Of_Time) 	{
@@ -107,9 +108,8 @@ pair<Move, int>	SEARCH_WITH_TABLE (	BOARD A, int DEPTH, int Alpha, int Beta, int
 	int	Alpha0		=		Alpha;
 	pair<Move, int> result;
 	//----------------Check if Search run out of time--------------
-
 	int Current_Timer	=	time(&now);
-	if (Current_Timer	-	Timer	>= 1500){
+	if (Current_Timer	-	Timer	>= 800){
 		Out_Of_Time	=	1;
 		return 	result;
 	}
@@ -124,15 +124,11 @@ pair<Move, int>	SEARCH_WITH_TABLE (	BOARD A, int DEPTH, int Alpha, int Beta, int
 				case UPPERBOUND	:	Alpha	=	max(Alpha, Memo.Evaluation);	break;
 				case LOWERBOUND	:	Beta	=	min(Beta, Memo.Evaluation);		break;
 			}
-			if (Alpha >= Beta) {
-				
-				return make_pair(A.PreviousMove, Memo.Evaluation);
-			}
+			if (Alpha >= Beta) return make_pair(A.PreviousMove, Memo.Evaluation);
 		}
 	}
 	SearchNode++;
 	//----------------------------NEGAMAX--------------------------
-	
 	int v, BestValue;
 	if (DEPTH	==	0 || A.Pieces[wK + 6* (A.Side_to_move)] == 0) {
 		if ( A.Pieces[wK + 6* (A.Side_to_move)] == 0 )	{
@@ -196,6 +192,7 @@ pair<Move, int>	SEARCH_WITH_TABLE (	BOARD A, int DEPTH, int Alpha, int Beta, int
     return result;
 }
 
+//QUIETSCENE SEARCH: Continute searching until no capture move availabe)
 int	QuiesceneSearch(BOARD A, int Alpha, int Beta){
 	SearchNode++;
 	ExtMove CaptureList[20];

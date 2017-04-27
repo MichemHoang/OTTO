@@ -185,10 +185,8 @@ void	PrintSQ			( uint8_t SQ[]){
 }
 
 void GenerateMask	(){
-	//for (int i = 0; i < 64; i++)
-		//for (int j = 0; j < 64; j++)
-			//H_Heuristic[i][j] = 0;
 	BitBoard	o;
+	//Generate population count for 1 byte
 	for (int i	= 0; i< 65536; i++){
 		o	=	i;
 		BitCount[i]	=	population(o);
@@ -205,7 +203,6 @@ void GenerateMask	(){
 		Pawn_AttackMask[1][i]	=	( (	( position	>> 7 ) & FileA )  ^ (position >> 7 )	) ;
 		Pawn_AttackMask[1][i]	|=	( (	( position	>> 9 ) & FileH )  ^ (position >> 9 )	) ;
 	}
-	
 	//Generate moves for king
 	for (int i = 0; i < 64; i++){
 		temp	=	BIT1	>> i;
@@ -249,6 +246,7 @@ void GenerateMoveData(){
 	BitBoard	mask, Var, validMoves;
 	int length, magicIndex;
 	for (int i = 0; i < 64; i++){
+		//Calulating magic Bitboard for Rooks;
 		mask	=	Rook_AttackMask[i];	
 		for (int jj	=	0; jj < 12; jj++){
 			variation [jj]	=	BitPop(mask);
@@ -265,6 +263,7 @@ void GenerateMoveData(){
 				if (a == -1) break;
 				Var		^=	(BIT1 >> 	variation[63 - a]);
 			}	
+			//Calulating magic number gor each index square
 			magicIndex		=	(int)( (Var * magicNumberRook[63 - i]) >> Shift_R[63 - i] );
 			for (int j=i+8; j<=63; j+=8) 			{ validMoves |= (BIT1 >> j); if ((Var & (BIT1 >> j)) != 0) break; }
 			for (int j=i-8; j>=0 ; j-=8) 			{ validMoves |= (BIT1 >> j); if ((Var & (BIT1 >> j)) != 0) break; }
@@ -273,6 +272,7 @@ void GenerateMoveData(){
 			RookMoveDatabase[i][magicIndex]		=	validMoves;
 		}	
 		//===============================================================================
+		//Calculating magic Bitboard for Bishops
 		mask	=	Bishop_AttackMask[i];	
 		for (int jj	=	0; jj < 12; jj++){
 			variation [jj]	=	BitPop(mask);
@@ -289,6 +289,7 @@ void GenerateMoveData(){
 				if (a == -1) break;
 				Var		^=	(BIT1 >> 	variation[63 - a]);
 			}	
+			//Calulating magic number gor each index square
 			magicIndex		=	(int)( (Var * magicNumberBishop[63 - i]) >> Shift_B[63 - i] );
 			for (int j=i+9; j%8!=0 && j<=63; j+=9) 		{ validMoves |= (BIT1 >> j); if ((Var & (BIT1 >> j)) != 0) break; }
 			for (int j=i-9; j%8!=7 && j>=0 ; j-=9) 		{ validMoves |= (BIT1 >> j); if ((Var & (BIT1 >> j)) != 0) break; }
@@ -332,6 +333,7 @@ int		Char_To_int	(char Mx, int ii){
 	return -1;
 }
 
+//Reading FEN_String from a string and convert into Board type
 void	READ_FEN(string FEN_STRING, BOARD *A) {
 	int BrdIter	=	0;
 	A	-> CurrentBoard[0]	=	0;
@@ -372,6 +374,7 @@ void	READ_FEN(string FEN_STRING, BOARD *A) {
 	A->No_Ply	=	Moves*2;
 }
 
+//Creating FEN_String from a Board datatype
 string	toFEN	(BOARD A){
 	string	FEN_STRING	=	"";
 	int		counter;

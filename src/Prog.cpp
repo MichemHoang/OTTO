@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <iostream>
+#include <pthread.h>
+#include <unistd.h>
+
 #include "BitBoard.h"
 #include "MoveGen.h"
 #include "evaluation.h"
 #include "search.h" 
-#include <pthread.h>
-#include <unistd.h>
 
 using namespace std;
 BOARD	INIT;

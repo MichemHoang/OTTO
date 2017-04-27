@@ -3,13 +3,18 @@
 
 #include <stdio.h>
 #include <iostream>
+#include <pthread.h>
+#include <unistd.h>
+
 #include "BitBoard.h"
 #include "MoveGen.h"
 #include "evaluation.h"
 #include "search.h" 
-#include <pthread.h>
-#include <unistd.h>
 #include "OpenBook.h"
+
+/* Managing thread
+ * Timer, main engine, IO
+ */
 
 struct HalfMoveInfo{
 	pair <Move, int> Result;
