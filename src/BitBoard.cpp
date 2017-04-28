@@ -134,11 +134,22 @@ const uint64_t debruijn64 	= 0x03f79d71b4cb0a89;
 
 const BitBoard DarkSquares 	= 0xAA55AA55AA55AA55ULL;
 
+namespace BitBoardOp{
 bool isSubsetOf	( BitBoard a, BitBoard b) {return (a & b) == a;}
 
 int LSBit		( BitBoard bb ){
 	if ( bb == 0x00 ) return 64;
 	return 63 - index64[((bb & -bb) * debruijn64) >> 58];
+}
+
+int	population	( BitBoard C ){
+	int population	=	0;
+	BitBoard	A	=	C;
+	while ( A != 0 ){
+		BitPop(A);
+		population++;
+	}
+	return population;
 }
 
 int MSBit		(BitBoard bb) {
@@ -186,12 +197,31 @@ void	PrintSQ			( uint8_t SQ[]){
 	cout	<< "\n==============END=============\n";
 }
 
-void GenerateMask	(){
+int PopsCount	( BitBoard C ){
+	int Res	=	0;
+	uint16_t index;
+	for (int scalar	=	0; scalar < 4; scalar++){
+		index	=	C >> (16*scalar);
+		Res		+=	BitCount[index];
+	}
+	return Res;
+	
+}
+
+void	getBoardInfo	(BOARD A){
+	PrintSQ(A.Sq);
+	if (A.Side_to_move	==	WHITE)	cout	<< "WHITE TURN\n";
+	else 							cout	<< "BLACK TURN\n";
+}
+
+}//end of namespace
+namespace INITIALIZE{
+void Mask	(){
 	BitBoard	o;
 	//Generate population count for 1 byte
 	for (int i	= 0; i< 65536; i++){
 		o	=	i;
-		BitCount[i]	=	population(o);
+		BitCount[i]	=	BitBoardOp::population(o);
 	}
 	BitBoard	temp;		
 	//GenerateAttackMovefor Pawn
@@ -243,7 +273,7 @@ void GenerateMask	(){
  * Planet earth is blue and there's nothing i can do.
  */
 
-void GenerateMoveData(){
+void MoveData(){
 	int variation[12];
 	BitBoard	mask, Var, validMoves;
 	int length, magicIndex;
@@ -251,7 +281,7 @@ void GenerateMoveData(){
 		//Calulating magic Bitboard for Rooks;
 		mask	=	MASK::RMask[i];	
 		for (int jj	=	0; jj < 12; jj++){
-			variation [jj]	=	BitPop(mask);
+			variation [jj]	=	BitBoardOp::BitPop(mask);
 			if (variation[jj]	==	-1) break;
 		}
 		length	=	1L << (64 - Shift_R[63-i]);
@@ -261,7 +291,7 @@ void GenerateMoveData(){
 			BitBoard tmp	=	k;
 			Var		=	MASK::RMask[i];
 			while (tmp != 0){
-				int a	=	BitPop(tmp);
+				int a	=	BitBoardOp::BitPop(tmp);
 				if (a == -1) break;
 				Var		^=	(BIT1 >> 	variation[63 - a]);
 			}	
@@ -277,7 +307,7 @@ void GenerateMoveData(){
 		//Calculating magic Bitboard for Bishops
 		mask	=	MASK::BMask[i];	
 		for (int jj	=	0; jj < 12; jj++){
-			variation [jj]	=	BitPop(mask);
+			variation [jj]	=	BitBoardOp::BitPop(mask);
 			if (variation[jj]	==	-1) break;
 		}
 		length	=	1L << (64 - Shift_B[63-i]);
@@ -287,7 +317,7 @@ void GenerateMoveData(){
 			BitBoard tmp	=	k;
 			Var		=	MASK::BMask[i];
 			while (tmp != 0){
-				int a	=	BitPop(tmp);
+				int a	=	BitBoardOp::BitPop(tmp);
 				if (a == -1) break;
 				Var		^=	(BIT1 >> 	variation[63 - a]);
 			}	
@@ -301,33 +331,7 @@ void GenerateMoveData(){
 		}	
 	}
 }
-
-int	population	( BitBoard C ){
-	int population	=	0;
-	BitBoard	A	=	C;
-	while ( A != 0 ){
-		BitPop(A);
-		population++;
-	}
-	return population;
-}
-
-int PopsCount	( BitBoard C ){
-	int Res	=	0;
-	uint16_t index;
-	for (int scalar	=	0; scalar < 4; scalar++){
-		index	=	C >> (16*scalar);
-		Res		+=	BitCount[index];
-	}
-	return Res;
-	
-}
-
-void	getBoardInfo	(BOARD A){
-	PrintSQ(A.Sq);
-	if (A.Side_to_move	==	WHITE)	cout	<< "WHITE TURN\n";
-	else 							cout	<< "BLACK TURN\n";
-}
+}//endof namespace
 
 int		Char_To_int	(char Mx, int ii){
 	if (ii == 1)	for (int i = 0; i < 12; i++){if (Mx	==	acter[i]) return i;}
@@ -335,6 +339,7 @@ int		Char_To_int	(char Mx, int ii){
 	return -1;
 }
 
+namespace FEN_Op{
 //Reading FEN_String from a string and convert into Board type
 void	READ_FEN(string FEN_STRING, BOARD *A) {
 	int BrdIter	=	0;
@@ -409,7 +414,7 @@ string	toFEN	(BOARD A){
 	return FEN_STRING;
 }
 
-
+}
 
 
 

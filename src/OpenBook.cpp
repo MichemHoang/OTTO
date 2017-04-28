@@ -1,6 +1,6 @@
 #include "OpenBook.h"
 
-HASH_TABLE<Opening, Key> OPEN_BOOK(1000000000);
+HASH_TABLE<Opening, Key> OPEN_BOOK(100000);
 
 void INIT_BOOK(){
 	ifstream BookText("Book.txt");
@@ -25,7 +25,7 @@ void INIT_BOOK(){
 					break;
 				}
 			}
-			READ_FEN(FEN_ANS, &A);
+			FEN_Op::READ_FEN(FEN_ANS, &A);
 			Hashing	=	GetKey(A);
 			while (iter < Line.length()){
 				MoveStr	+=	Line[iter];

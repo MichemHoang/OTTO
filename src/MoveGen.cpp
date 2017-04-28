@@ -47,7 +47,7 @@ ExtMove *MoveEncoding (int isPawn, int Sq, BitBoard Target, ExtMove *MoveList, B
 	BitBoard	OwnBoard	=	C.CurrentBoard[C.Side_to_move];
 	if (isPawn%6	!=	0){
 		while (Target != 0){
-			to				=	BitPop(Target);
+			to				=	BitBoardOp::BitPop(Target);
 			if ((BIT1 >> to & Enemy) != 0 )	{	FLG		=	CAPTURE;		
 				int a	=	EVALUATION::SEEA(to, C, from);
 				if (a > -90) a += 200; else a -= 200;
@@ -59,7 +59,7 @@ ExtMove *MoveEncoding (int isPawn, int Sq, BitBoard Target, ExtMove *MoveList, B
 				if (-40 < a && a < 150 && true){
 					PotentialT	=	GENERATE::Picker(isPawn%6, from, OwnBoard, Enemy, C.Side_to_move, 0) & Enemy;
 					while (PotentialT != 0){
-						int potentialTarget	=	BitPop(PotentialT);
+						int potentialTarget	=	BitBoardOp::BitPop(PotentialT);
 						a += VALUE[C.Sq[potentialTarget]]/((isPawn%6 + 4)*2.5);
 					}
 				}
@@ -72,7 +72,7 @@ ExtMove *MoveEncoding (int isPawn, int Sq, BitBoard Target, ExtMove *MoveList, B
 		}
 	} else {
 		while (Target != 0){
-			to				=	BitPop(Target);
+			to				=	BitBoardOp::BitPop(Target);
 			BitBoard		PawnDes		=	BIT1 >> to;
 			if ( ( ( PawnDes & Rank1 ) || ( PawnDes & Rank8 ) ) != 0 ){
 				if ( ( PawnDes & Enemy ) != 0 )	{
@@ -109,7 +109,7 @@ ExtMove *MoveEncoding (int isPawn, int Sq, BitBoard Target, ExtMove *MoveList, B
 					if (-40 < a && a < 150){
 						PotentialT	=	GENERATE::Pawn(from, OwnBoard, Enemy, C.Side_to_move, EMPTY_BRD) & Enemy;
 						while (PotentialT != 0){
-							int potentialTarget	=	BitPop(PotentialT);
+							int potentialTarget	=	BitBoardOp::BitPop(PotentialT);
 							a += (VALUE[C.Sq[potentialTarget]]/5);
 						}
 					}
@@ -239,7 +239,7 @@ int AllMove( struct BOARD A, ExtMove *MoveList, int Color ){
 	for (int i	=	0; i < 6; i++){
 		while (Pieces[i] != 0){
 			BitBoard		MoveHolder;
-			int position	=	BitPop(Pieces[i]);
+			int position	=	BitBoardOp::BitPop(Pieces[i]);
 			MoveHolder		=	Picker(i, position, OwnPieces, EnemyPieces, Color, EMPTY_BRD);
 			MoveList		=	MoveEncoding(i, position, MoveHolder, MoveList, EnemyPieces, A, &MOVELIST_TOTAL_ITEMS);
 			Moves[i]		|=	MoveHolder;
@@ -267,7 +267,7 @@ int CaptureMove( struct BOARD A, ExtMove *MoveList, int Color ){
 	for (int i	=	0; i < 6; i++){
 		while (Pieces[i] != 0){
 			BitBoard		MoveHolder;
-			int position	=	BitPop(Pieces[i]);
+			int position	=	BitBoardOp::BitPop(Pieces[i]);
 			MoveHolder		=	Picker(i, position, OwnPieces, EnemyPieces, Color, EMPTY_BRD) & EnemyPieces;
 			MoveList		=	MoveEncoding(i, position, MoveHolder, MoveList, EnemyPieces, A, &MOVELIST_TOTAL_ITEMS);
 			Moves[i]		|=	MoveHolder;

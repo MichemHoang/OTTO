@@ -9,8 +9,6 @@
 #include <algorithm>    // std::sort
 #include "MoveGen.h"
 
-extern BitString	Random[13][64];
-
 BitString	RandomGenerator();
 
 BitString	GetKey(BOARD A);

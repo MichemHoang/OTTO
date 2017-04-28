@@ -40,6 +40,7 @@ class HASH_TABLE{
 		void		echo();
 		void		addEntry(HKey ZobristHash, T newEntry);
 		int			HashFunction( HKey Hashkey)	;
+		void		setSize		( int AS );
 		int			getSize		(	)	;
 		bool		FindEntry	( HKey Hashkey, T *Result)  ;
 		void		UpdateTable	( )	;	// Updating table after every Move so that it wont be filled with old useless entry;
@@ -52,6 +53,9 @@ HASH_TABLE<T, HKey>::HASH_TABLE 	()		{	Size	=	4000;	};
 
 template <typename T, typename HKey> 
 HASH_TABLE<T, HKey>::HASH_TABLE		(int A)	{	Size	=	A; }
+
+template <typename T, typename HKey> 
+void		HASH_TABLE<T, HKey>::setSize		( int AS )			{	Size	=	AS;	};
 
 template <typename T, typename HKey> 
 int			HASH_TABLE<T, HKey>::getSize		(	)			{	return HashTable.size();	};

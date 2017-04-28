@@ -68,32 +68,26 @@ struct	BOARD{
 	Move		PrevMove[80];
 };
 
-int		population	( BitBoard A );
-
+namespace BitBoardOp{
 bool 	isSubsetOf	( BitBoard a, BitBoard b);
-
 int		BitPop		( BitBoard &A );
-
 int 	LSBit		( BitBoard A );
-
 int 	MSBit		( BitBoard A ); 
-
 int		BitPopR		( BitBoard &A );
-
 int 	PopsCount	( BitBoard C );
-
 void 	PrintBitBoard 	( BitBoard A );
-
 void	PrintSQ			( uint8_t SQ[]);
-
-void 	GenerateMoveData ();
-
-void 	GenerateMask	();
-
-void	READ_FEN	(std::string FEN_STRING, BOARD *A);
-
-std::string		toFEN		(BOARD A);
-
 void	getBoardInfo(BOARD A);
+}
+
+namespace INITIALIZE{
+void 	MoveData ();
+void 	Mask	();
+}
+
+namespace FEN_Op{
+void	READ_FEN	(std::string FEN_STRING, BOARD *A);
+std::string		toFEN		(BOARD A);
+}
 
 #endif

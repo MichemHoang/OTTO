@@ -30,6 +30,8 @@ void 	Display_Move(BOARD A);
 
 HalfMoveInfo AI_Move ( BOARD A, int level, int *TotMove, int *TotTime, Move DrawCondition );
 
+void 	*StartGame(void * threadArg);
+
 void 	*Start_Game(void * threadArg);
 
 void *Clock(void *);
