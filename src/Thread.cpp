@@ -3,8 +3,9 @@
 using namespace std;
 BOARD	INIT;
 time_t 	now;
-int SIGNAL;
-bool	LOCK	=	false;
+int 	SIGNAL	=	0;
+bool	UNLOCK	=	false;
+Search	GAME;
 
 void		InitBoard()				{
 	FEN_Op::READ_FEN(STANDARD, &INIT);
@@ -30,8 +31,17 @@ void Display_Move(BOARD A){
 	}
 }
 
-void *Clock(void *){
-	while (!LOCK){
+void *Timer(void *){
+	int startTime = time(&now);
+	while (!UNLOCK){
+		sleep(4);
+		int SearchTime	=	time(&now) - startTime;
+		if (SearchTime > 600) {
+			GAME.TimeOut(true);
+			SIGNAL	=	1;
+			while (SIGNAL == 1){}
+			startTime = time(&now);
+		}
 	}
 	pthread_exit(NULL);
 }
@@ -45,14 +55,14 @@ void	AIMove(Search *A, int *TotalTime, int level, pair<Move, int> *ANS){
 	INIT	=	MOVE::MakeMove(INIT, ANS->first);
 	BitBoardOp::getBoardInfo(INIT);
 	A->setPosition(INIT);
-	cout	<< "AverageTime	=" << (double)(*TotalTime)/(double)(INIT.No_Ply) << endl;;
+	cout	<< "SearchNode = " << GAME.getSearchNode();
+	cout	<< "AverageTime	= " << (double)(*TotalTime)/(double)(INIT.No_Ply) << endl;;
 }
 
 void *StartGame(void * threadArg){
 	int		level, AIvsAI, MaxMove, Side;
 	int		*PTR;
 	int		TotalTime		= 0;
-	Search	GAME;
 	GAME.setTableSize(8000000);
 	GAME.setPosition(INIT);
 	PTR			=	(int *) threadArg;
@@ -64,6 +74,10 @@ void *StartGame(void * threadArg){
 			AIMove(&GAME, &TotalTime, level, &RES);
 			if (RES.second > 9666)		{cout	<< "Player 1 win\n"; 	break;}
 			if (RES.second < -9666)		{cout	<< "Player 2 win\n";	break;}
+			//RESET SEARCH TIMER
+			SIGNAL = 0;
+			GAME.TimeOut(false);
+			sleep(3);	//CPU relief
 		}
 	} else
 		for (int i = 0; i < MaxMove; i++){
@@ -77,6 +91,7 @@ void *StartGame(void * threadArg){
 						INIT	=	MOVE::MakeMove(INIT, Koas);
 						BitBoardOp::getBoardInfo(INIT);
 						FoundOpening = true;	
+						GAME.setPosition(INIT);
 					}
 				} 
 				if (FoundOpening){}
@@ -97,9 +112,12 @@ void *StartGame(void * threadArg){
 				INIT	=	MOVE::MakeMove(INIT, ok[PlayerMove]);
 				BitBoardOp::getBoardInfo(INIT);	
 				cout	<< "FEN STRING = " << FEN_Op::toFEN(INIT) << endl;
-			}
-			
+				//RESET SEARCH TIMER
+				GAME.TimeOut(false);
+				SIGNAL = 0; 
+			}	
 		}
+	UNLOCK	=	true;
 	cout	<< "Total Time = " 		<< TotalTime << endl;
 	cout	<< "Evaluate Final Board : " << EVALUATION::Evaluate(INIT, INIT.Side_to_move) << endl;
 	pthread_exit(NULL);

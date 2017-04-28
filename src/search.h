@@ -28,6 +28,7 @@ class Search{
 		int			MoveTime;
 	public:
 		Search	();
+		void		TimeOut (bool FIN);
 		int			getTime();
 		void 		setPosition	(BOARD Pos);
 		void 		setTableSize	(int   Size);

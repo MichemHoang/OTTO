@@ -4,7 +4,7 @@
 
 int main(){
 	Init_engine();
-	pthread_t	Game;
+	pthread_t	Game, GameClock;
 	int	Arg[4];
 	srand(time(0));
 	cout << "enter level : ";		cin >> Arg[0];
@@ -15,6 +15,6 @@ int main(){
 		cin		>> Arg[3];
 	}
 	pthread_create(&Game, NULL, StartGame, (void *)&Arg);
-	//pthread_create(&Noti, NULL, Clock, NULL);
+	pthread_create(&GameClock, NULL, Timer, NULL);
 	pthread_exit(NULL);
 }

@@ -9,6 +9,10 @@ Search::Search	(){
 	SearchNode	=	0;
 }
 
+void	Search::TimeOut (bool FIN){
+	OutOfTime = FIN;
+}
+
 void	Search::setPosition(BOARD Pos){
 	Position	=	Pos;
 }

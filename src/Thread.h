@@ -16,11 +16,6 @@
  * Timer, main engine, IO
  */
 
-struct HalfMoveInfo{
-	pair <Move, int> Result;
-	int	Time;
-	int	SearchNode;
-};
 
 void	InitBoard()	;
 
@@ -28,13 +23,9 @@ void 	Init_engine();
 
 void 	Display_Move(BOARD A);
 
-HalfMoveInfo AI_Move ( BOARD A, int level, int *TotMove, int *TotTime, Move DrawCondition );
-
 void 	*StartGame(void * threadArg);
 
-void 	*Start_Game(void * threadArg);
-
-void *Clock(void *);
+void 	*Timer(void *);
 
 #endif 
 
