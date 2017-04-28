@@ -52,7 +52,7 @@ short RookTable[64]	=	{
 	0,	0,	0,	0,	0,	0,	0,	0,
 	0,	0,	0,	0,	0,	0,	0,	0,
 	0,	0,	0,	0,	0,	0,	0,	0,
-	-5,	0,	0,	0,	0,	0,	0, -5,
+  -15,	0,	0,	0,	0,	0,	0,-15,
 };
 
 short QueenTable[64]=	{
@@ -68,13 +68,14 @@ short QueenTable[64]=	{
 
 BitBoard CenterBonus	=	0x3C3C3C3C0000;
 
-int	VALUE[13]		=	{P_VALUE, N_VALUE, B_VALUE, R_VALUE, Q_VALUE, K_VALUE, P_VALUE, N_VALUE, B_VALUE, R_VALUE, Q_VALUE, K_VALUE, 0};
 int RayLookUp[8]	=	{1,3,5,7,0,2,4,6};
 BitBoard FILES[8]	=	{FileA, FileB, FileC, FileD, FileE, FileF, FileG, FileH};
 BitBoard RANKS[8]	=	{Rank1, Rank2, Rank3, Rank4, Rank5, Rank6, Rank7, Rank8};
+
 //return relative score for a move based on destination
 //Favors pawn pushing and discourage Queen, King and Rook movement
 
+namespace EVALUATION{
 int	PieceSquareValue(int isPawn, uint16_t from, uint16_t to){
 	switch (isPawn){
 		case wP: return (PawnTable[to] 		- 	PawnTable[from])/1.5 + 10;
@@ -101,9 +102,10 @@ int	PieceSquareValue(int isPawn, uint16_t from, uint16_t to){
  * 		+ Castle receive Bonus
  * 		+ Pawn structure
  * 		+ King safety
+ * 		+ BIshop pair
  */
 
-int	EvaluateBOARD	(BOARD A, int side){
+int	Evaluate	(BOARD A, int side){
 	int MATERIAL_BALANCE	=	0;
 	int	PAWN_STRUCTURE		=	0;
 	int	CENTER_CONTROL		=	0;
@@ -123,7 +125,7 @@ int	EvaluateBOARD	(BOARD A, int side){
 	//PAWN FORMATION
 	Pawn[0]	=	A.Pieces[wP]; Pawn[1]	=	A.Pieces[bP];
 	for ( int i = 0; i < 2; i++)
-		while (Pawn[i] != 0 )	if ((Pawn_AttackMask[i][BitPop(Pawn[i])]	& A.Pieces[i*6]) != 0 ) PAWN_STRUCTURE	+=	25*(1 - 2*i);
+		while (Pawn[i] != 0 )	if ((MASK::PMask[i][BitPop(Pawn[i])]	& A.Pieces[i*6]) != 0 ) PAWN_STRUCTURE	+=	25*(1 - 2*i);
 	CENTER_CONTROL	=	40*(PopsCount(A.CurrentBoard[WHITE] & CenterBonus) - PopsCount(A.CurrentBoard[BLACK] & CenterBonus));
 	
 	//CASTLING
@@ -158,48 +160,57 @@ int	EvaluateBOARD	(BOARD A, int side){
 	
 	//KING SAFETY
 	Pawn[0]	=	A.Pieces[wP]; Pawn[1]	=	A.Pieces[bP];
-	int a = 0, b = 0;
+	int a = 0, b = 0, d, e;
 	int KingPos	=	LSBit(A.Pieces[wK]);
 	if ((AttackRay[2][KingPos] & Pawn[0]) != 0) a += 90;
-	if (KingPos%8 != 7) if ((AttackRay[2][KingPos + 1] & Pawn[0]) != 0) a += 60;
-	if (KingPos%8 != 0) if ((AttackRay[2][KingPos - 1] & Pawn[0]) != 0) a += 60;
+	if (KingPos%8 != 7) {if ((AttackRay[2][KingPos + 1] & Pawn[0]) != 0) a += 60;}	else a += 40;
+	if (KingPos%8 != 0) {if ((AttackRay[2][KingPos - 1] & Pawn[0]) != 0) a += 60;}	else a += 40;
 	if (A.Pieces[bQ]	==	0) a	*= 0.8;
-	
-	int d =  PopsCount(King_AttackMask[KingPos] & A.CurrentBoard[0]);
-	d *= 30;
+	d =  PopsCount(MASK::KMask[KingPos] & A.CurrentBoard[0]) * 30;
 	
 	KingPos	=	LSBit(A.Pieces[bK]);
 	if ((AttackRay[6][KingPos] & Pawn[1]) != 0) b -= 90;
-	if (KingPos%8 != 7) if ((AttackRay[6][KingPos + 1] & Pawn[1]) != 0) b -= 60;
-	if (KingPos%8 != 0) if ((AttackRay[6][KingPos - 1] & Pawn[1]) != 0) b -= 60;
+	if (KingPos%8 != 7) {if ((AttackRay[6][KingPos + 1] & Pawn[1]) != 0) b -= 60;}	else b -= 40;
+	if (KingPos%8 != 0) {if ((AttackRay[6][KingPos - 1] & Pawn[1]) != 0) b -= 60;}	else b -= 40;
 	if (A.Pieces[wQ]	==	0) b	*= 0.8;
-	int e =  PopsCount(King_AttackMask[KingPos] & A.CurrentBoard[1]);
-	e *= -30;
+	e =  PopsCount(MASK::KMask[KingPos] & A.CurrentBoard[1]) * -30;
 	
-	KING_SAFETY	=	a + b + d + e;
-	
+	KING_SAFETY	=	a + b;
+	if (A.No_Ply > 14) KING_SAFETY+= (d+e);
 	if (A.No_Ply < 12) KING_SAFETY*= 0.3;
 	if (A.No_Ply > 70) KING_SAFETY*= 0.7;
 	
-	
-	TOTAL_SCORE	=	MATERIAL_BALANCE + PAWN_STRUCTURE + CENTER_CONTROL + MOBILITY + CASTLING + KING_SAFETY + PSQR_VALUE + BLK_PWN;
+	//ROOK_ON_OPEN_FILE
+	if (A.No_Ply > 30){
+		int RookPos		=	LSBit(A.Pieces[wR]);
+		BitBoard Mobi	=	GENERATE::Rook(RookPos, A.CurrentBoard[WHITE], A.CurrentBoard[BLACK]);
+		if ((Mobi & FILES[RookPos%8] & A.Pieces[wP] & A.Pieces[bP]) == 0) 	MOBILITY	+= 40;	
+		else if ((Mobi & FILES[RookPos%8] & A.Pieces[wP]) == 0)				MOBILITY	+= 20;	
+		
+		RookPos	=	LSBit(A.Pieces[bR]);
+		Mobi	=	GENERATE::Rook(RookPos, A.CurrentBoard[BLACK], A.CurrentBoard[WHITE]);
+		if ((Mobi & FILES[RookPos%8] & A.Pieces[wP] & A.Pieces[bP]) == 0) 	MOBILITY	-= 40;	
+		else if ((Mobi & FILES[RookPos%8] & A.Pieces[bP]) == 0)				MOBILITY	-= 20;	
+	}
+	TOTAL_SCORE	=	MATERIAL_BALANCE + PAWN_STRUCTURE + CENTER_CONTROL + 
+					MOBILITY + CASTLING + KING_SAFETY + PSQR_VALUE + BLK_PWN;
 	side	==	BLACK ? TOTAL_SCORE *= -1 : TOTAL_SCORE *= 	1;
 	return TOTAL_SCORE;
 }
 
-
-int LeastValuableAttacker	(int att_Sqr, BOARD A, int side){
+//LEAST VALUABLE ATTACKER
+int LVA	(int att_Sqr, BOARD A, int side){
 	int	QPosition	=	-1;
 	BitBoard SlidingPiece;
 	BitBoard B;
 	int position	=	-1;
-	SlidingPiece	=	generateQueenMove(att_Sqr, A.CurrentBoard[side ^ 1] | BIT1 >> att_Sqr, A.CurrentBoard[side]);
-	B	=	(Pawn_AttackMask[side^1][att_Sqr]	&	A.Pieces[wP + 6*(side)]);
+	SlidingPiece	=	GENERATE::Queen(att_Sqr, A.CurrentBoard[side ^ 1] | BIT1 >> att_Sqr, A.CurrentBoard[side]);
+	B	=	MASK::PMask[side^1][att_Sqr]	&	A.Pieces[wP + 6*(side)];
 	while (B!=0){
 		position	=	BitPop(B);
 		return position;
 	}
-	B	=	Knight_AttackMask[att_Sqr]	&	A.Pieces[wN	+	6 * side];
+	B	=	MASK::NMask[att_Sqr]	&	A.Pieces[wN	+	6 * side];
 	while (B!=0){
 		position	=	BitPop(B);
 		return position;
@@ -218,7 +229,7 @@ int LeastValuableAttacker	(int att_Sqr, BOARD A, int side){
 			}
 		}
 	}
-	B	=	King_AttackMask[att_Sqr]	&	A.Pieces[wK	+	6 * side];
+	B	=	MASK::KMask[att_Sqr]	&	A.Pieces[wK	+	6 * side];
 	position	=	BitPop(B);
 	if (A.Sq[position]	==	(wN + 6 * side ))	if (QPosition	==	-1) return position;
 	return QPosition;
@@ -238,7 +249,7 @@ int	SEEA(int To, BOARD A, int from){
 	A.Sq[from]	=	12;
 	A.Side_to_move	^=	1;
 	do {
-		Attacker		=	LeastValuableAttacker(To, A, A.Side_to_move);
+		Attacker		=	LVA(To, A, A.Side_to_move);
 		A.Side_to_move	^=	1;
 		if (Attacker == -1) break;
 		depth++;
@@ -253,11 +264,10 @@ int	SEEA(int To, BOARD A, int from){
 		A.Sq[To]		=	A.Sq[Attacker];
 		A.Sq[Attacker]	=	12;
 	} while (1);
-	while (depth >0)	{
+	while (depth > 0)	{
 		if (-gain[depth-1] <= gain[depth])  gain[depth-1]	=	-gain[depth];
 		depth--;
 	}
 	return gain[0];
 };
-
-
+}

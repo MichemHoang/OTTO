@@ -5,14 +5,10 @@
 #include  "MoveGen.h"
 #include  "evaluation.h"
 
+namespace EVALUATION{
 int	PieceSquareValue(int isPawn, uint16_t from, uint16_t to);
-
-int	EvaluateBOARD	(BOARD A, int side);
-
-int	SEE	(int Sqr, BOARD A, int attacker, int turn);
-
+int	Evaluate	(BOARD A, int side);
 int	SEEA(int To, BOARD A, int from);
-
-int LeastValuableAttacker	(int att_Sqr, BOARD A, int side);
-
+int LVA	(int att_Sqr, BOARD A, int side);
+}
 #endif 

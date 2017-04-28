@@ -5,6 +5,7 @@
 
 #include "typedefs.h"
 
+
 /*
  * BitBoard manipulation
  * Bit level manipulation
@@ -12,11 +13,14 @@
  */
  
 extern uint8_t	BitCount[65536];
-extern BitBoard Rook_AttackMask[64];
-extern BitBoard Knight_AttackMask[64];
-extern BitBoard King_AttackMask[64];
-extern BitBoard Bishop_AttackMask[64];
-extern BitBoard	Pawn_AttackMask[2][64];
+
+namespace MASK{
+extern BitBoard RMask[64];
+extern BitBoard NMask[64];
+extern BitBoard KMask[64];
+extern BitBoard BMask[64];
+extern BitBoard	PMask[2][64];
+}
 
 extern BitBoard magicNumberRook[];
 extern BitBoard magicNumberBishop[];

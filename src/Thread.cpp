@@ -12,6 +12,7 @@ void		InitBoard()				{
 }
 
 void Init_engine(){
+	PrintBitBoard(FileA);
 	cout	<< "MICHEM 1.5 ALPHA ACTIVATED\n";
 	GenerateMask();
 	InitZoBrist(true);
@@ -22,11 +23,11 @@ void Init_engine(){
 
 void Display_Move(BOARD A){
 	ExtMove ok[265];
-	int size=	GenerateAllMove(A, ok, A.Side_to_move);
+	int size=	GENERATE::AllMove(A, ok, A.Side_to_move);
 	ExtMove *lo	=	ok;
 	for (int t = 0; t < size; t++){
 		cout	<< t << ": ";
-		DecodeMove(lo++);
+		DECODE::DecodeMove(lo++);
 	}
 }
 
@@ -34,14 +35,14 @@ HalfMoveInfo AI_Move ( BOARD A, int level, int *TotMove, int *TotTime, Move Draw
 	int start_time;
 	HalfMoveInfo INFO;
 	start_time	=	time(&now);
-	INFO.Result	=	DEEPENING_SEARCH(A, level, 2, DrawCondition);
+	INFO.Result	=	DEEPENING_SEARCH(A, level, DrawCondition);
 	INFO.Time	=	time(&now) - start_time;
 	*TotTime	+=	INFO.Time;
 	cout	<<  "time = " << INFO.Time << endl;
 	*TotMove	+=	1;
 	Display_Move(INIT);
-	DecodeMove(INFO.Result.first);
-	INIT	=	MakeMove(A, INFO.Result.first);
+	DECODE::DecodeMove(INFO.Result.first);
+	INIT	=	MOVE::MakeMove(A, INFO.Result.first);
 	getBoardInfo(INIT);
 	return INFO;
 }
@@ -101,8 +102,8 @@ void *Start_Game(void * threadArg){
 				Key Hash = GetKey(INIT);
 				Move Koas;
 				if (FindOpening(Hash, &Koas)) {
-					DecodeMove(Koas);
-					INIT	=	MakeMove(INIT, Koas);
+					DECODE::DecodeMove(Koas);
+					INIT	=	MOVE::MakeMove(INIT, Koas);
 					getBoardInfo(INIT);
 					FoundOpening = true;
 					cout	<< "Move n0 " << TotalMove << endl;		
@@ -146,12 +147,12 @@ void *Start_Game(void * threadArg){
 			Display_Move (INIT);
 			ExtMove ok[70];
 			int		PlayerMove;
-			GenerateAllMove(INIT, ok, INIT.Side_to_move);
+			GENERATE::AllMove(INIT, ok, INIT.Side_to_move);
 			cout	<< "Your Move " << endl;
 			cin		>> PlayerMove;
-			DecodeMove(ok[PlayerMove].move); cout	<< (int)ok[PlayerMove].move << endl;
+			DECODE::DecodeMove(ok[PlayerMove].move); cout	<< (int)ok[PlayerMove].move << endl;
 			if (PlayerMove < 0) break;
-			INIT	=	MakeMove(INIT, ok[PlayerMove]);
+			INIT	=	MOVE::MakeMove(INIT, ok[PlayerMove]);
 			if (ok[PlayerMove].move == DrawCondition) {cout	<< "DRAW\n"; 	break;}
 			getBoardInfo(INIT);
 			TotalMove++;
@@ -163,8 +164,7 @@ void *Start_Game(void * threadArg){
 	cout	<< "Total Time = " 		<< totalTime << endl;
 	cout	<< "Total Move = "		<< TotalMove << endl;
 	averageTime	=	(double)totalTime/(double)TotalMove;
-	cout	<< "AverageFail = " << AverageFail/(double)(MaxMove*2) << endl;
 	cout	<< "Average Time = " 	<< averageTime << endl;
-	cout	<< "Evaluate Final Board : " << EvaluateBOARD(INIT, INIT.Side_to_move) << endl;
+	cout	<< "Evaluate Final Board : " << EVALUATION::Evaluate(INIT, INIT.Side_to_move) << endl;
 	pthread_exit(NULL);
 }

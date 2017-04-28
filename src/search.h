@@ -21,9 +21,8 @@ using namespace std;
 
 int	QuiesceneSearch(BOARD A, int Alpha, int Beta);
 
-pair<Move, int>	DEEPENING_SEARCH (BOARD A, int MAX_DEPTH, int choo, Move Draw);
+pair<Move, int>	DEEPENING_SEARCH (BOARD A, int MAX_DEPTH, Move Draw);
 
-pair<Move, int> IterDeepening_SEARCH(BOARD A, int MAX_DEPTH, int Choo);
 
 pair<Move, int>	SEARCH_WITH_TABLE (BOARD A, int DEPTH, int Alpha, int Beta, int Timer, int FINAL_DEPT, Key ZobristKey);
 

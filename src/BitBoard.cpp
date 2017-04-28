@@ -29,12 +29,14 @@ char		Castling_Condition[5]	=	{'K', 'Q', 'k', 'q', '-'};
 uint8_t		Castling_Value[5]		=	{CastlingKW, CastlingQW, CastlingKB, CastlingQB, 0};
 
 uint8_t		BitCount[65536];
-BitBoard	Bishop_AttackMask[64];
-BitBoard 	Rook_AttackMask[64];
-BitBoard	Knight_AttackMask[64];
-BitBoard	King_AttackMask[64];
-BitBoard	Pawn_AttackMask[2][64];
 
+namespace MASK{
+BitBoard	BMask[64];
+BitBoard 	RMask[64];
+BitBoard	NMask[64];
+BitBoard	KMask[64];
+BitBoard	PMask[2][64];
+}
 /*
  *Copyright (C) 2007 Pradyumna Kannan. 
  */
@@ -101,14 +103,14 @@ int Shift_B[] = {
 
 //End of Copyright
 
-const BitBoard FileA = 0x0101010101010101ULL;			
-const BitBoard FileB = FileA << 1;
-const BitBoard FileC = FileA << 2;
-const BitBoard FileD = FileA << 3;
-const BitBoard FileE = FileA << 4;
-const BitBoard FileF = FileA << 5;
-const BitBoard FileG = FileA << 6;
-const BitBoard FileH = FileA << 7;
+const BitBoard FileH = 0x0101010101010101ULL;			
+const BitBoard FileG = FileH << 1;
+const BitBoard FileF = FileH << 2;
+const BitBoard FileE = FileH << 3;
+const BitBoard FileD = FileH << 4;
+const BitBoard FileC = FileH << 5;
+const BitBoard FileB = FileH << 6;
+const BitBoard FileA = FileH << 7;
 
 const BitBoard Rank1 = 0xFF;
 const BitBoard Rank2 = Rank1 << (8 * 1);
@@ -195,44 +197,44 @@ void GenerateMask	(){
 	//GenerateAttackMovefor Pawn
 	for (int i	= 8; i< 56; i ++){
 		BitBoard	position	=	BIT1 >> i;
-		Pawn_AttackMask[0][i]	=	0;
-		Pawn_AttackMask[0][i]	=	( (	( position	<< 7 ) & FileH )  ^ (position << 7 )	) ;
-		Pawn_AttackMask[0][i]	|=	( (	( position	<< 9 ) & FileA )  ^ (position << 9 )	) ;
+		MASK::PMask[0][i]	=	0;
+		MASK::PMask[0][i]	=	( (	( position	<< 7 ) & FileH )  ^ (position << 7 )	) ;
+		MASK::PMask[0][i]	|=	( (	( position	<< 9 ) & FileA )  ^ (position << 9 )	) ;
 		
-		Pawn_AttackMask[1][i]	=	0;
-		Pawn_AttackMask[1][i]	=	( (	( position	>> 7 ) & FileA )  ^ (position >> 7 )	) ;
-		Pawn_AttackMask[1][i]	|=	( (	( position	>> 9 ) & FileH )  ^ (position >> 9 )	) ;
+		MASK::PMask[1][i]	=	0;
+		MASK::PMask[1][i]	=	( (	( position	>> 7 ) & FileA )  ^ (position >> 7 )	) ;
+		MASK::PMask[1][i]	|=	( (	( position	>> 9 ) & FileH )  ^ (position >> 9 )	) ;
 	}
 	//Generate moves for king
 	for (int i = 0; i < 64; i++){
 		temp	=	BIT1	>> i;
-		if ( i % 8 != 7 )			King_AttackMask[i]	|=	( temp >> 1 | temp << 7 | temp >> 9);
-		if ( i % 8 != 0 )			King_AttackMask[i]	|=	( temp << 1 | temp << 9 | temp >> 7);
-		King_AttackMask[i]	|=	temp >> 8;
-		King_AttackMask[i]	|=	temp << 8;
+		if ( i % 8 != 7 )			MASK::KMask[i]	|=	( temp >> 1 | temp << 7 | temp >> 9);
+		if ( i % 8 != 0 )			MASK::KMask[i]	|=	( temp << 1 | temp << 9 | temp >> 7);
+		MASK::KMask[i]	|=	temp >> 8;
+		MASK::KMask[i]	|=	temp << 8;
 	}
 	//Generate moves for Knight
 	for (int i = 0; i < 64; i++){
 		temp	=	BIT1	>> i;
-		if ( i % 8 < 7 )			Knight_AttackMask[i] |=	( temp << 15 | temp >> 17 );
-		if ( i % 8 < 6 ) 			Knight_AttackMask[i] |=	( temp << 6  | temp >> 10 );
-		if ( i % 8 > 0 )			Knight_AttackMask[i] |= ( temp << 17 | temp >> 15 );
-		if ( i % 8 > 1 )			Knight_AttackMask[i] |= ( temp << 10 | temp >> 6  );
+		if ( i % 8 < 7 )			MASK::NMask[i] |=	( temp << 15 | temp >> 17 );
+		if ( i % 8 < 6 ) 			MASK::NMask[i] |=	( temp << 6  | temp >> 10 );
+		if ( i % 8 > 0 )			MASK::NMask[i] |= ( temp << 17 | temp >> 15 );
+		if ( i % 8 > 1 )			MASK::NMask[i] |= ( temp << 10 | temp >> 6  );
 	}
 	//Generate moves for Rook { 6 = S, 2 = N, 4 = E, 0 = W } 
 	for (int i = 0; i < 64; i++){
-		for (int j	=	i+8; j < 64; j+=8)	{	AttackRay[6][i]	|=	( BIT1 >> j );	if (j >= 56			) break;	Rook_AttackMask[i]	|=	( BIT1 >> j );	}
-		for (int j 	=	i-8; j >=0 ; j-=8)	{	AttackRay[2][i]	|=	( BIT1 >> j );	if (j < 8 			) break;	Rook_AttackMask[i]	|=	( BIT1 >> j );	}
-		for (int j	=	i+1; j < 64; j++ )	{	AttackRay[4][i]	|=	( BIT1 >> j );	if (j%8==0 || j%8==7) break;	Rook_AttackMask[i]	|=	( BIT1 >> j );	}
-		for (int j	=	i-1; j >=0 ; j-- )	{	AttackRay[0][i]	|=	( BIT1 >> j );	if (j%8==0 || j%8==7) break;	Rook_AttackMask[i]	|=	( BIT1 >> j );	}	
+		for (int j	=	i+8; j < 64; j+=8)	{	AttackRay[6][i]	|=	( BIT1 >> j );	if (j >= 56			) break;	MASK::RMask[i]	|=	( BIT1 >> j );	}
+		for (int j 	=	i-8; j >=0 ; j-=8)	{	AttackRay[2][i]	|=	( BIT1 >> j );	if (j < 8 			) break;	MASK::RMask[i]	|=	( BIT1 >> j );	}
+		for (int j	=	i+1; j < 64; j++ )	{	AttackRay[4][i]	|=	( BIT1 >> j );	if (j%8==0 || j%8==7) break;	MASK::RMask[i]	|=	( BIT1 >> j );	}
+		for (int j	=	i-1; j >=0 ; j-- )	{	AttackRay[0][i]	|=	( BIT1 >> j );	if (j%8==0 || j%8==7) break;	MASK::RMask[i]	|=	( BIT1 >> j );	}	
 	}
 	//Generate moves for Bishop
 	for (int i = 0; i < 64; i++){
-		for (int j	=	i+9; j < 64; j+=9)	{	AttackRay[5][i]	|=	( BIT1 >> j );	if (j%8==0 || j%8==7) break; Bishop_AttackMask[i]	|=	( BIT1 >> j ); }
-		for (int j 	=	i-9; j >=0 ; j-=9)	{	AttackRay[1][i]	|=	( BIT1 >> j );	if (j%8==0 || j%8==7) break; Bishop_AttackMask[i]	|=	( BIT1 >> j ); }
-		for (int j	=	i+7; j < 64; j+=7)	{	AttackRay[7][i]	|=	( BIT1 >> j );	if (j%8==0 || j%8==7) break; Bishop_AttackMask[i]	|=	( BIT1 >> j ); }
-		for (int j	=	i-7; j >=0 ; j-=7 )	{	AttackRay[3][i]	|=	( BIT1 >> j );	if (j%8==0 || j%8==7) break; Bishop_AttackMask[i]	|=	( BIT1 >> j ); }
-		Bishop_AttackMask[i]	&=		~Edges;		
+		for (int j	=	i+9; j < 64; j+=9)	{	AttackRay[5][i]	|=	( BIT1 >> j );	if (j%8==0 || j%8==7) break; MASK::BMask[i]	|=	( BIT1 >> j ); }
+		for (int j 	=	i-9; j >=0 ; j-=9)	{	AttackRay[1][i]	|=	( BIT1 >> j );	if (j%8==0 || j%8==7) break; MASK::BMask[i]	|=	( BIT1 >> j ); }
+		for (int j	=	i+7; j < 64; j+=7)	{	AttackRay[7][i]	|=	( BIT1 >> j );	if (j%8==0 || j%8==7) break; MASK::BMask[i]	|=	( BIT1 >> j ); }
+		for (int j	=	i-7; j >=0 ; j-=7 )	{	AttackRay[3][i]	|=	( BIT1 >> j );	if (j%8==0 || j%8==7) break; MASK::BMask[i]	|=	( BIT1 >> j ); }
+		MASK::BMask[i]	&=		~Edges;		
 		
 	}
 }
@@ -247,7 +249,7 @@ void GenerateMoveData(){
 	int length, magicIndex;
 	for (int i = 0; i < 64; i++){
 		//Calulating magic Bitboard for Rooks;
-		mask	=	Rook_AttackMask[i];	
+		mask	=	MASK::RMask[i];	
 		for (int jj	=	0; jj < 12; jj++){
 			variation [jj]	=	BitPop(mask);
 			if (variation[jj]	==	-1) break;
@@ -257,7 +259,7 @@ void GenerateMoveData(){
 		for (int k	=	1; k < length; k++){
 			validMoves	=	0;
 			BitBoard tmp	=	k;
-			Var		=	Rook_AttackMask[i];
+			Var		=	MASK::RMask[i];
 			while (tmp != 0){
 				int a	=	BitPop(tmp);
 				if (a == -1) break;
@@ -273,7 +275,7 @@ void GenerateMoveData(){
 		}	
 		//===============================================================================
 		//Calculating magic Bitboard for Bishops
-		mask	=	Bishop_AttackMask[i];	
+		mask	=	MASK::BMask[i];	
 		for (int jj	=	0; jj < 12; jj++){
 			variation [jj]	=	BitPop(mask);
 			if (variation[jj]	==	-1) break;
@@ -283,7 +285,7 @@ void GenerateMoveData(){
 		for (int k	=	0; k < length; k++){
 			validMoves	=	0;
 			BitBoard tmp	=	k;
-			Var		=	Bishop_AttackMask[i];
+			Var		=	MASK::BMask[i];
 			while (tmp != 0){
 				int a	=	BitPop(tmp);
 				if (a == -1) break;

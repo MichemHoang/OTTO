@@ -29,7 +29,7 @@ void Init_engine(){
 
 void Display_Move(BOARD A){
 	ExtMove ok[265];
-	int size=	GenerateAllMove(A, ok, A.Side_to_move);
+	int size=	AllMove(A, ok, A.Side_to_move);
 	ExtMove *lo	=	ok;
 	for (int t = 0; t < size; t++){
 		cout	<< t << ": ";
@@ -113,7 +113,7 @@ void *Start_Game(void * threadArg){
 			Display_Move (INIT);
 			ExtMove ok[265];
 			int		PlayerMove;
-			GenerateAllMove(INIT, ok, INIT.Side_to_move);
+			AllMove(INIT, ok, INIT.Side_to_move);
 			cout	<< "Your Move " << endl;
 			cin		>> PlayerMove;
 			INIT	=	MakeMove(INIT, ok[PlayerMove]);
@@ -128,7 +128,7 @@ void *Start_Game(void * threadArg){
 	cout	<< "Total Move = "		<< TotalMove << endl;
 	averageTime	=	(double)totalTime/(double)TotalMove;
 	cout	<< "Average Time = " 	<< averageTime << endl;
-	cout	<< "Evaluate Final Board : " << EvaluateBOARD(INIT, INIT.Side_to_move) << endl;
+	cout	<< "Evaluate Final Board : " << Evaluate(INIT, INIT.Side_to_move) << endl;
 	pthread_exit(NULL);
 }
 

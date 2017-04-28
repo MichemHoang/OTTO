@@ -2,42 +2,32 @@
 
 HASH_TABLE<HashEntry, Key> TRANS_TABLE(4000000);
 int History_heristic[64][64];
-
 int			Out_Of_Time;
-int			Database_hit;
-int			Counter;
 uint64_t	SearchNode;
 pair<Move, int>		BestMove[2];
-HashEntry	PV_NODE	[15];
-double	AverageFail	=	0;
 
-
-pair<Move, int>	DEEPENING_SEARCH (BOARD A, int MAX_DEPTH, int choo, Move Draw){
-	BitBoard	CheckPhase;
+pair<Move, int>	DEEPENING_SEARCH (BOARD A, int MAX_DEPTH, Move Draw){
+	int			Material_Point	=	0;
 	time_t 		now;
-	int 		Timer;
+	int 		Timer	=	time(&now);
 	int			FINAL_DEPT;
 	BitString 	BoardHashValue	=	GetKey(A);
-	ExtMove 	FirstBatch[255];
+	ExtMove 	FirstBatch[100];
+	int			Alpha	=	MIN_VALUE;
+	int 		Beta	=	MAX_VALUE;
 	pair<Move, int> STORE_MOVE;
-	pair<Move, int> DES_MOVE;
-	int lotterySeed;
-	int			Diff	=	250;
-	CheckPhase	=	 A.Pieces[wR] | A.Pieces[wN] | A.Pieces[wB] | A.Pieces[bR] | A.Pieces[bN] | A.Pieces[bB];
-	if (population(CheckPhase)	< 10 )	{
-		cout	<< "MIDDLE GAME PHASE\n";
-		MAX_DEPTH 	+= 	2;
-		Diff		=	200;	
-	} else if (population((A.Pieces[wQ] | A.Pieces[bQ])) < 2 && population(CheckPhase)	< 12)	{
-		cout	<< "MIDDLE GAME PHASE\n";
-		MAX_DEPTH 	+= 	2;
-		Diff		=	200;	
-	}
-	
-	Timer		=	time(&now);
+	pair<Move, int> OPTIMAL_MOVE;
 	Out_Of_Time	=	0;
+	
+	//Checking if Board has reach Middle game. If so, increase depth;
+	for (int i = 0; i < 5; i++) 
+		Material_Point += (PopsCount(A.Pieces[i] | A.Pieces[i + 6])) * VALUE[i];
+	if (Material_Point <= 7700) 
+		MAX_DEPTH += 2;
+		
+	//Reduce Depth based on killer capture	
 	ExtMove *Batch	=	FirstBatch;
-	int BSIZE	=	GenerateAllMove(A, Batch, A.Side_to_move);
+	int BSIZE	=	GENERATE::AllMove(A, Batch, A.Side_to_move);
 	for (int iterYo = 0; iterYo < BSIZE; iterYo++){
 		int iMin = iterYo;
 		for (int j = iterYo+1; j < BSIZE; j++)	if (Batch[j].value > Batch[iMin].value)	iMin	=	j;
@@ -47,60 +37,37 @@ pair<Move, int>	DEEPENING_SEARCH (BOARD A, int MAX_DEPTH, int choo, Move Draw){
 			Batch[iMin]		=	tmp;
 		};
 	}
-	if (FirstBatch[0].getFlags() == 4){
-		if (FirstBatch[1].getFlags() != 4){
-			if ((FirstBatch[0].value - FirstBatch[1].value ) >= Diff) {
-				MAX_DEPTH -= 2;
-				cout	<< "MAX REDUCTION\n";
-			}
-		} else {
-			if ((FirstBatch[0].value - FirstBatch[1].value ) >= 350) {
-				MAX_DEPTH -= 2;
-				cout	<< "MAX REDUCTION\n";
-			}
-		}
-	}
-	int	Alpha	=	MIN_VALUE;
-	int Beta	=	MAX_VALUE;
+	if (FirstBatch[0].getFlags() == 4)
+		if ((FirstBatch[0].value - FirstBatch[1].value ) >= 250) 
+			MAX_DEPTH -= 2;
 	Out_Of_Time	=	false;
 	
+	//Deepening search loop
 	for (int inc =	2; inc >= 0; inc-=2){
 		SearchNode	=	0;
 		BestMove[0]		=	make_pair(0, -99999);
 		BestMove[1]		=	make_pair(0, -99999);
-		Database_hit	=	0;
-		Counter			=	0;	
 		FINAL_DEPT	=	MAX_DEPTH - inc;
-		DES_MOVE	=	SEARCH_WITH_TABLE(A, FINAL_DEPT, Alpha, Beta, Timer, FINAL_DEPT, BoardHashValue);
+		OPTIMAL_MOVE	=	SEARCH_WITH_TABLE(A, FINAL_DEPT, Alpha, Beta, Timer, FINAL_DEPT, BoardHashValue);
 		TRANS_TABLE.UpdateTable();
 		if (inc == 2)	{
-			cout << "Shallow search\n"; DecodeMove(DES_MOVE.first);
+			cout << "Shallow search\n"; 
+			DECODE::DecodeMove(OPTIMAL_MOVE.first);
 			int TimeLimit	=	time(&now) - Timer;
 			if (TimeLimit > 60) {cout	<< "Exceed Time Limit, break\n"; break;}
-			lotterySeed	=	BestMove[0].second - BestMove[1].second + 4;
 		}
 		if (Out_Of_Time) 	{
-			DES_MOVE	=	STORE_MOVE;
+			OPTIMAL_MOVE	=	STORE_MOVE;
 			cout	<< "OUT OF TIME\n";
 		}
-		else 			STORE_MOVE	=	DES_MOVE;
+		else 			STORE_MOVE	=	OPTIMAL_MOVE;
 		Alpha		=	STORE_MOVE.second - 150;
 		Beta		=	STORE_MOVE.second + 150;
 	}
-	if (DES_MOVE.first == Draw) {if (lotterySeed  < 70) DES_MOVE	=	BestMove[1];}
-	else {
-		int Probability	=	1000 *(5/(double)lotterySeed);
-		int range		=	rand() %1000 + 40;
-		if (range < Probability && false) {DES_MOVE = BestMove[1]; cout	<< "ALTERNATIVE MOVE\n";}
-	}
-	cout	<< "DATABASE SIZE = " << TRANS_TABLE.getSize() << endl;
-	cout	<< "Hit rate = " << 100*(double)Database_hit/(double)Counter <<"%" << endl;
 	cout	<< 	"Total Node	= "	<< SearchNode	<< endl;
 	TRANS_TABLE.UpdateTable();
-	return DES_MOVE;
+	return OPTIMAL_MOVE;
 }
-
-
 
 pair<Move, int>	SEARCH_WITH_TABLE (	BOARD A, int DEPTH, int Alpha, int Beta, int Timer, 
 									int FINAL_DEPT, BitString ZobristHash){
@@ -139,13 +106,11 @@ pair<Move, int>	SEARCH_WITH_TABLE (	BOARD A, int DEPTH, int Alpha, int Beta, int
 	}
 	ExtMove 	MoveList[100];
 	ExtMove 	*lo		=	MoveList;
-	int 		FSIZE	=	GenerateAllMove(A, lo, A.Side_to_move);
+	int 		FSIZE	=	GENERATE::AllMove(A, lo, A.Side_to_move);
 	v	=	MIN_VALUE;
-	Counter++;
 	if (TRANS_TABLE.FindEntry(ZobristHash, &Memo))	{
 		for (int i = 0; i < FSIZE; i++) {
 			if (MoveList[i].move == Memo.BestMove) {
-				Database_hit++;
 				MoveList[i].value	+=	5000;
 				break;
 			}
@@ -160,7 +125,7 @@ pair<Move, int>	SEARCH_WITH_TABLE (	BOARD A, int DEPTH, int Alpha, int Beta, int
 			MoveList[iMin]		=	tmp;
 		};
 		BestValue	=	v;
-		int	Temp	=	-SEARCH_WITH_TABLE(MakeMove(A, MoveList[iterYo]), DEPTH - 1, -Beta, -Alpha, 
+		int	Temp	=	-SEARCH_WITH_TABLE(MOVE::MakeMove(A, MoveList[iterYo]), DEPTH - 1, -Beta, -Alpha, 
 						Timer, FINAL_DEPT, UpdateKey(ZobristHash, MoveList[iterYo].move, A)).second;
 		v			=	max(v, Temp);
 		if (Out_Of_Time == 1)	return result;
@@ -197,10 +162,10 @@ int	QuiesceneSearch(BOARD A, int Alpha, int Beta){
 	SearchNode++;
 	ExtMove CaptureList[20];
 	ExtMove *iter	=	CaptureList;
-	int evaluation	=	EvaluateBOARD(A, A.Side_to_move);
+	int evaluation	=	EVALUATION::Evaluate(A, A.Side_to_move);
 	if (evaluation 	>=	Beta) 	{	return Beta;	}
 	if (evaluation  >=	Alpha) 	{	Alpha 	=	evaluation;	}
-	int CAPTURE_LIST_SIZE	=	GenerateCaptureMove(A, iter, A.Side_to_move); 
+	int CAPTURE_LIST_SIZE	=	GENERATE::CaptureMove(A, iter, A.Side_to_move); 
 	for (int i = 0; i < CAPTURE_LIST_SIZE; i++){
 		int iMin = i;
 		for (int j = i+1; j < CAPTURE_LIST_SIZE; j++)	if (CaptureList[j].value > CaptureList[iMin].value)	iMin	=	j;
@@ -209,7 +174,7 @@ int	QuiesceneSearch(BOARD A, int Alpha, int Beta){
 			CaptureList[i]		=	CaptureList[iMin];
 			CaptureList[iMin]	=	tmp;
 		}
-		evaluation	=	-QuiesceneSearch(MakeMove(A, CaptureList[i]), -Beta, -Alpha);
+		evaluation	=	-QuiesceneSearch(MOVE::MakeMove(A, CaptureList[i]), -Beta, -Alpha);
 		if (evaluation 	>=	Beta) 	{	return Beta;	}
 		if (evaluation  >=	Alpha) 	{	Alpha 	=	evaluation;	}
     }

@@ -67,7 +67,7 @@ enum Castling_right{
 };
 
 
-namespace BEGIN_GAME{
+namespace BEGIN{
 	const int P_VALUE	=	105;
 	const int N_VALUE	=	320;
 	const int B_VALUE	=	340;
@@ -76,7 +76,7 @@ namespace BEGIN_GAME{
 	const int R_VALUE	=	510;
 }
 
-namespace MID_GAME{
+namespace MID{
 	const int P_VALUE	=	105;
 	const int N_VALUE	=	305;
 	const int B_VALUE	=	320;
@@ -85,7 +85,7 @@ namespace MID_GAME{
 	const int R_VALUE	=	520;
 }
 
-namespace END_GAME{
+namespace END{
 	const int P_VALUE	=	105;
 	const int N_VALUE	=	310;
 	const int B_VALUE	=	340;
@@ -93,6 +93,9 @@ namespace END_GAME{
 	const int Q_VALUE	=	910;
 	const int R_VALUE	=	510;
 }
+
+const int	VALUE[13]	=	{BEGIN::P_VALUE, BEGIN::N_VALUE, BEGIN::B_VALUE, BEGIN::R_VALUE, BEGIN::Q_VALUE, BEGIN::K_VALUE, 
+							 BEGIN::P_VALUE, BEGIN::N_VALUE, BEGIN::B_VALUE, BEGIN::R_VALUE, BEGIN::Q_VALUE, BEGIN::K_VALUE, 0};
 
 struct ExtMove {
 	Move move;

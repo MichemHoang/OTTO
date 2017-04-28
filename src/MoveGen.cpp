@@ -4,11 +4,9 @@
  * 
  */
  
-
- 
 extern int		RECUR_CALL;
-int	VAL[13]		=	{P_VALUE, N_VALUE, B_VALUE, R_VALUE, Q_VALUE, K_VALUE, P_VALUE, N_VALUE, B_VALUE, R_VALUE, Q_VALUE, K_VALUE, 0};
 
+namespace DECODE{
 void DecodeMove	(ExtMove *A){
 	int	from	=	A->move	&	0x3F;
 	int to		=	(A->move	&	0xFC0) >> 6;
@@ -38,6 +36,7 @@ string DecodeMove	(Move A, int i){
 	string answer	=	to_string(from) + "->" + to_string(to) + "   Flags = " + to_string(flags);
 	return answer;
 }
+}//endnamespace
 
 ExtMove *MoveEncoding (int isPawn, int Sq, BitBoard Target, ExtMove *MoveList, BitBoard Enemy, BOARD C, int *Z){
 	uint16_t	from;
@@ -50,21 +49,21 @@ ExtMove *MoveEncoding (int isPawn, int Sq, BitBoard Target, ExtMove *MoveList, B
 		while (Target != 0){
 			to				=	BitPop(Target);
 			if ((BIT1 >> to & Enemy) != 0 )	{	FLG		=	CAPTURE;		
-				int a	=	SEEA(to, C, from);
+				int a	=	EVALUATION::SEEA(to, C, from);
 				if (a > -90) a += 200; else a -= 200;
-				MoveList->value	=	PieceSquareValue(isPawn, from, to) + a;	
+				MoveList->value	=	EVALUATION::PieceSquareValue(isPawn, from, to) + a;	
 			}
 			else {	FLG		=	QUIET_MOVES;	
 				BitBoard PotentialT;
-				int a	=	SEEA(to, C, from);
+				int a	=	EVALUATION::SEEA(to, C, from);
 				if (-40 < a && a < 150 && true){
-					PotentialT	=	Picker(isPawn%6, from, OwnBoard, Enemy, C.Side_to_move, 0) & Enemy;
+					PotentialT	=	GENERATE::Picker(isPawn%6, from, OwnBoard, Enemy, C.Side_to_move, 0) & Enemy;
 					while (PotentialT != 0){
 						int potentialTarget	=	BitPop(PotentialT);
-						a += VAL[C.Sq[potentialTarget]]/((isPawn%6 + 4)*2.5);
+						a += VALUE[C.Sq[potentialTarget]]/((isPawn%6 + 4)*2.5);
 					}
 				}
-				MoveList->value	=	PieceSquareValue(isPawn, from, to) + a;	
+				MoveList->value	=	EVALUATION::PieceSquareValue(isPawn, from, to) + a;	
 			}
 			flags	=	FLG;
 			MoveList->move	=	(from | to << 6 | flags << 12);
@@ -80,7 +79,7 @@ ExtMove *MoveEncoding (int isPawn, int Sq, BitBoard Target, ExtMove *MoveList, B
 					for (int i =8; i < 12; i++)	{
 						flags	=	i;
 						MoveList->move	=	(from | to << 6 | flags << 12);
-						MoveList->value	=	1.5 * i * i	+	SEEA(to, C, from);
+						MoveList->value	=	1.5 * i * i	+	EVALUATION::SEEA(to, C, from);
 						*Z		+=1;
 						MoveList++;
 					}
@@ -97,24 +96,24 @@ ExtMove *MoveEncoding (int isPawn, int Sq, BitBoard Target, ExtMove *MoveList, B
 			} else {
 				if ((BIT1 >> to & Enemy) != 0 )	{	
 					FLG		=	CAPTURE;		
-					int a	=	SEEA(to, C, from);
+					int a	=	EVALUATION::SEEA(to, C, from);
 					if (a > -30) a += 150; else a -= 150;
-					MoveList->value	=	PieceSquareValue(isPawn, from, to) + a;	
+					MoveList->value	=	EVALUATION::PieceSquareValue(isPawn, from, to) + a;	
 				}
 				else {	
 					BitBoard PotentialT;
 					int DoublePush	=	to - from;
 					if (DoublePush == 16 || DoublePush	==	-16)	FLG	=	DOUBLE_PUSH;
 					else  											FLG	=	QUIET_MOVES;	
-					int a	=	SEEA(to, C, from);
+					int a	=	EVALUATION::SEEA(to, C, from);
 					if (-40 < a && a < 150){
-						PotentialT	=	generatePawnMove(from, OwnBoard, Enemy, C.Side_to_move, EMPTY_BRD) & Enemy;
+						PotentialT	=	GENERATE::Pawn(from, OwnBoard, Enemy, C.Side_to_move, EMPTY_BRD) & Enemy;
 						while (PotentialT != 0){
 							int potentialTarget	=	BitPop(PotentialT);
-							a += (VAL[C.Sq[potentialTarget]]/5);
+							a += (VALUE[C.Sq[potentialTarget]]/5);
 						}
 					}
-					MoveList->value	=	PieceSquareValue(isPawn, from, to) + a;
+					MoveList->value	=	EVALUATION::PieceSquareValue(isPawn, from, to) + a;
 				}
 				flags	=	FLG;
 				MoveList->move	=	(from | to << 6 | flags << 12);
@@ -129,8 +128,8 @@ ExtMove *MoveEncoding (int isPawn, int Sq, BitBoard Target, ExtMove *MoveList, B
 /*
  * "all in all it's just another brick in the wall"
  */
-
-int GenerateAllMove( struct BOARD A, ExtMove *MoveList, int Color ){
+namespace GENERATE{
+int AllMove( struct BOARD A, ExtMove *MoveList, int Color ){
 	int 		MOVELIST_TOTAL_ITEMS	=	0;
 	BitBoard	Pieces[15];
 	BitBoard	Moves[15];
@@ -163,9 +162,9 @@ int GenerateAllMove( struct BOARD A, ExtMove *MoveList, int Color ){
 			}
 		}
 		if ((A.Castling_check	&	castK)	!=	castK) {
-			if ((LeastValuableAttacker(60, A, BLACK)	!=	-1) || 
-				(LeastValuableAttacker(61, A, BLACK)	!=	-1) ||
-				(LeastValuableAttacker(62, A, BLACK)	!=	-1)) {}
+			if ((EVALUATION::LVA(60, A, BLACK)	!=	-1) || 
+				(EVALUATION::LVA(61, A, BLACK)	!=	-1) ||
+				(EVALUATION::LVA(62, A, BLACK)	!=	-1)) {}
 			else if (A.Sq[62]	==	emptySqr&& A.Sq[61]	==	emptySqr){
 				MoveList->move	=	(60 | 62 << 6 | KING_CASTLE << 12);
 				Moves[wK]		=	BIT1 >> 62;
@@ -175,9 +174,9 @@ int GenerateAllMove( struct BOARD A, ExtMove *MoveList, int Color ){
 			}
 		}
 		if ((A.Castling_check	&	castQ)	!=	castQ){
-			if (LeastValuableAttacker(60, A, BLACK)	!=	-1	||
-				LeastValuableAttacker(59, A, BLACK)	!=	-1	||
-				LeastValuableAttacker(58, A, BLACK)	!=	-1) {}
+			if (EVALUATION::LVA(60, A, BLACK)	!=	-1	||
+				EVALUATION::LVA(59, A, BLACK)	!=	-1	||
+				EVALUATION::LVA(58, A, BLACK)	!=	-1) {}
 			else if (A.Sq[57]	==	emptySqr&& A.Sq[58]	==	emptySqr&& A.Sq[59]	==	emptySqr){
 				MoveList->move	=	(60 | 58 << 6 | QUEEN_CASTLE << 12);
 				Moves[wK]		=	BIT1 >> 58;
@@ -213,9 +212,9 @@ int GenerateAllMove( struct BOARD A, ExtMove *MoveList, int Color ){
 			}
 		}
 		if (((A.Castling_check)	&	castK)	!=	castK) {
-			if (LeastValuableAttacker(4, A, WHITE)	!=	-1	||
-				LeastValuableAttacker(5, A, WHITE)	!=	-1	||
-				LeastValuableAttacker(6, A, WHITE)	!=	-1) {}
+			if (EVALUATION::LVA(4, A, WHITE)	!=	-1	||
+				EVALUATION::LVA(5, A, WHITE)	!=	-1	||
+				EVALUATION::LVA(6, A, WHITE)	!=	-1) {}
 			else if (A.Sq[5]	==	emptySqr&& A.Sq[6]	==	emptySqr){
 				MoveList->move	=	(4 | 6 << 6 | KING_CASTLE << 12);
 				Moves[bK]		=	BIT1 >> 6;
@@ -225,9 +224,9 @@ int GenerateAllMove( struct BOARD A, ExtMove *MoveList, int Color ){
 			}
 		}
 		if (((A.Castling_check)	&	castQ)	!=	castQ){
-			if (LeastValuableAttacker(4, A, WHITE)	!=	-1	||
-				LeastValuableAttacker(3, A, WHITE)	!=	-1	||
-				LeastValuableAttacker(2, A, WHITE)	!=	-1) {}
+			if (EVALUATION::LVA(4, A, WHITE)	!=	-1	||
+				EVALUATION::LVA(3, A, WHITE)	!=	-1	||
+				EVALUATION::LVA(2, A, WHITE)	!=	-1) {}
 			else if (A.Sq[1]	==	emptySqr&& A.Sq[2]	==	emptySqr&& A.Sq[3]	==	emptySqr){
 				MoveList->move	=	(4 | 2 << 6 | QUEEN_CASTLE << 12);
 				Moves[bK]		=	BIT1 >> 2;
@@ -249,7 +248,7 @@ int GenerateAllMove( struct BOARD A, ExtMove *MoveList, int Color ){
 	return MOVELIST_TOTAL_ITEMS;
 }
 
-int GenerateCaptureMove( struct BOARD A, ExtMove *MoveList, int Color ){
+int CaptureMove( struct BOARD A, ExtMove *MoveList, int Color ){
 	BitBoard	Pieces[12];
 	BitBoard	Moves[12];
 	BitBoard	EnemyPieces, OwnPieces;
@@ -277,6 +276,76 @@ int GenerateCaptureMove( struct BOARD A, ExtMove *MoveList, int Color ){
 	return MOVELIST_TOTAL_ITEMS;
 }
 
+BitBoard Picker(int chooser, int pos, BitBoard OwnPieces, BitBoard EnemyPieces, int Color, BitBoard capture){
+	BitBoard result;
+	switch (chooser){
+		case wP:	result	=	GENERATE::Pawn	( pos,  OwnPieces,  EnemyPieces,  Color, capture);	break;
+		case wB:	result	=	GENERATE::Bishop( pos,  OwnPieces,  EnemyPieces);					break;
+		case wR:	result	=	GENERATE::Rook	( pos,  OwnPieces,  EnemyPieces);					break;
+		case wQ:	result	=	GENERATE::Queen	( pos,  OwnPieces,  EnemyPieces);					break;
+		case wN:	result	=	GENERATE::Knight( pos,  OwnPieces,  EnemyPieces);					break;
+		case wK:	result	=	GENERATE::King	( pos,  OwnPieces,  EnemyPieces);					break;
+	}
+	return result;
+}
+
+BitBoard Pawn		(int pos, BitBoard OwnPieces, BitBoard EnemyPieces, int Color, BitBoard cap){
+	BitBoard ValidMoves	=	0;
+	BitBoard position	=	BIT1 >> pos;
+	if (Color	==	WHITE){
+		ValidMoves	|=	( position	<< 8 ) & ~( OwnPieces | EnemyPieces ) & ~cap;	
+		ValidMoves  |=  (ValidMoves & Rank3) << 8 & ~( OwnPieces | EnemyPieces ) & ~cap;
+		ValidMoves	|=	( (	( position	<< 7 ) & FileH )  ^ (position << 7 )	) & ( EnemyPieces | cap );
+		ValidMoves	|=	( (	( position	<< 9 ) & FileA )  ^ (position << 9 )	) & ( EnemyPieces | cap );
+	} else {
+		ValidMoves	=	(position	>> 8 ) & ~( OwnPieces | EnemyPieces ) & ~cap;
+		ValidMoves  |=  (ValidMoves & Rank6) >> 8 & ~( OwnPieces | EnemyPieces ) & ~cap;
+		ValidMoves	|=	( (	( position	>> 7 ) & FileA )  ^ (position >> 7 )	) & ( EnemyPieces | cap );
+		ValidMoves	|=	( (	( position	>> 9 ) & FileH )  ^ (position >> 9 )	) & ( EnemyPieces | cap );
+	}
+	return ValidMoves;
+}
+
+BitBoard Knight		(int pos, BitBoard OwnPieces, BitBoard EnemyPieces){
+	BitBoard ValidMoves	=	0;
+	ValidMoves	=	MASK::NMask[pos] & ~OwnPieces;
+	return ValidMoves;
+}
+
+BitBoard Bishop		(int pos, BitBoard OwnPieces, BitBoard EnemyPieces){
+	BitBoard ValidMoves	=	0;
+	int magicIndex;
+	magicIndex	=	(int)( ((OwnPieces | EnemyPieces) & MASK::BMask[pos]) * magicNumberBishop[63 - pos] >> Shift_B[63 - pos]);
+	ValidMoves	=	BishopMoveDatabase[pos][magicIndex] & ~OwnPieces;
+	return ValidMoves;
+}
+
+BitBoard Rook		(int pos, BitBoard OwnPieces, BitBoard EnemyPieces){
+	BitBoard ValidMoves	=	0;
+	int magicIndex;
+	magicIndex	=	(int)( ((OwnPieces | EnemyPieces) & MASK::RMask[pos]) * magicNumberRook[63 - pos] >> Shift_R[63 - pos]);
+	ValidMoves	=	RookMoveDatabase[pos][magicIndex] & ~OwnPieces;
+	return ValidMoves;
+}
+
+BitBoard Queen		(int pos, BitBoard OwnPieces, BitBoard EnemyPieces){
+	BitBoard ValidMoves	=	0;
+	int magicIndex;
+	magicIndex	=	(int)( ((OwnPieces | EnemyPieces) & MASK::BMask[pos]) * magicNumberBishop[63 - pos] >> Shift_B[63 - pos]);
+	ValidMoves	=	BishopMoveDatabase[pos][magicIndex] & ~OwnPieces;
+	magicIndex	=	(int)( ((OwnPieces | EnemyPieces) & MASK::RMask[pos]) * magicNumberRook[63 - pos] >> Shift_R[63 - pos]);
+	ValidMoves	|=	RookMoveDatabase[pos][magicIndex] & ~OwnPieces;
+	return ValidMoves;
+}
+
+BitBoard King		(int pos, BitBoard OwnPieces, BitBoard EnemyPieces){
+	BitBoard ValidMoves	=	0;
+	ValidMoves	=	MASK::KMask[pos] & ~OwnPieces;
+	return ValidMoves;
+}
+}//endnamespace;
+
+namespace MOVE{
 BOARD	MakeMove(BOARD initial, ExtMove transformer){
 	uint8_t	from	=	transformer.getFrom();
 	uint8_t to		=	transformer.getTo();
@@ -376,74 +445,8 @@ BOARD	MakeMove(BOARD initial, Move transformer){
 	initial.PrevMove[initial.No_Ply++]	=	transformer;
 	return initial;
 }
-
+}
 
 //Unfinished Undo Move
 
-BitBoard Picker(int chooser, int pos, BitBoard OwnPieces, BitBoard EnemyPieces, int Color, BitBoard capture){
-	BitBoard result;
-	switch (chooser){
-		case wP:	result	=	generatePawnMove( pos,  OwnPieces,  EnemyPieces,  Color, capture);	break;
-		case wB:	result	=	generateBishopMove( pos,  OwnPieces,  EnemyPieces);					break;
-		case wR:	result	=	generateRookMove( pos,  OwnPieces,  EnemyPieces);					break;
-		case wQ:	result	=	generateQueenMove( pos,  OwnPieces,  EnemyPieces);					break;
-		case wN:	result	=	generateKnightMove( pos,  OwnPieces,  EnemyPieces);					break;
-		case wK:	result	=	generateKingMove( pos,  OwnPieces,  EnemyPieces);					break;
-	}
-	return result;
-}
 
-BitBoard generatePawnMove		(int pos, BitBoard OwnPieces, BitBoard EnemyPieces, int Color, BitBoard cap){
-	BitBoard ValidMoves	=	0;
-	BitBoard position	=	BIT1 >> pos;
-	if (Color	==	WHITE){
-		ValidMoves	|=	( position	<< 8 ) & ~( OwnPieces | EnemyPieces ) & ~cap;	
-		ValidMoves  |=  (ValidMoves & Rank3) << 8 & ~( OwnPieces | EnemyPieces ) & ~cap;
-		ValidMoves	|=	( (	( position	<< 7 ) & FileH )  ^ (position << 7 )	) & ( EnemyPieces | cap );
-		ValidMoves	|=	( (	( position	<< 9 ) & FileA )  ^ (position << 9 )	) & ( EnemyPieces | cap );
-	} else {
-		ValidMoves	=	(position	>> 8 ) & ~( OwnPieces | EnemyPieces ) & ~cap;
-		ValidMoves  |=  (ValidMoves & Rank6) >> 8 & ~( OwnPieces | EnemyPieces ) & ~cap;
-		ValidMoves	|=	( (	( position	>> 7 ) & FileA )  ^ (position >> 7 )	) & ( EnemyPieces | cap );
-		ValidMoves	|=	( (	( position	>> 9 ) & FileH )  ^ (position >> 9 )	) & ( EnemyPieces | cap );
-	}
-	return ValidMoves;
-}
-
-BitBoard generateKnightMove		(int pos, BitBoard OwnPieces, BitBoard EnemyPieces){
-	BitBoard ValidMoves	=	0;
-	ValidMoves	=	Knight_AttackMask[pos] & ~OwnPieces;
-	return ValidMoves;
-}
-
-BitBoard generateBishopMove		(int pos, BitBoard OwnPieces, BitBoard EnemyPieces){
-	BitBoard ValidMoves	=	0;
-	int magicIndex;
-	magicIndex	=	(int)( ((OwnPieces | EnemyPieces) & Bishop_AttackMask[pos]) * magicNumberBishop[63 - pos] >> Shift_B[63 - pos]);
-	ValidMoves	=	BishopMoveDatabase[pos][magicIndex] & ~OwnPieces;
-	return ValidMoves;
-}
-
-BitBoard generateRookMove		(int pos, BitBoard OwnPieces, BitBoard EnemyPieces){
-	BitBoard ValidMoves	=	0;
-	int magicIndex;
-	magicIndex	=	(int)( ((OwnPieces | EnemyPieces) & Rook_AttackMask[pos]) * magicNumberRook[63 - pos] >> Shift_R[63 - pos]);
-	ValidMoves	=	RookMoveDatabase[pos][magicIndex] & ~OwnPieces;
-	return ValidMoves;
-}
-
-BitBoard generateQueenMove		(int pos, BitBoard OwnPieces, BitBoard EnemyPieces){
-	BitBoard ValidMoves	=	0;
-	int magicIndex;
-	magicIndex	=	(int)( ((OwnPieces | EnemyPieces) & Bishop_AttackMask[pos]) * magicNumberBishop[63 - pos] >> Shift_B[63 - pos]);
-	ValidMoves	=	BishopMoveDatabase[pos][magicIndex] & ~OwnPieces;
-	magicIndex	=	(int)( ((OwnPieces | EnemyPieces) & Rook_AttackMask[pos]) * magicNumberRook[63 - pos] >> Shift_R[63 - pos]);
-	ValidMoves	|=	RookMoveDatabase[pos][magicIndex] & ~OwnPieces;
-	return ValidMoves;
-}
-
-BitBoard generateKingMove		(int pos, BitBoard OwnPieces, BitBoard EnemyPieces){
-	BitBoard ValidMoves	=	0;
-	ValidMoves	=	King_AttackMask[pos] & ~OwnPieces;
-	return ValidMoves;
-}
