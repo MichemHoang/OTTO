@@ -47,7 +47,7 @@ ExtMove *MoveEncoding (int isPawn, int Sq, BitBoard Target, ExtMove *MoveList, B
 	BitBoard	OwnBoard	=	C.CurrentBoard[C.Side_to_move];
 	if (isPawn%6	!=	0){
 		while (Target != 0){
-			to				=	BitBoardOp::BitPop(Target);
+			to				=	BitOp::BitPop(Target);
 			if ((BIT1 >> to & Enemy) != 0 )	{	FLG		=	CAPTURE;		
 				int a	=	EVALUATION::SEEA(to, C, from);
 				if (a > -90) a += 200; else a -= 200;
@@ -59,7 +59,7 @@ ExtMove *MoveEncoding (int isPawn, int Sq, BitBoard Target, ExtMove *MoveList, B
 				if (-40 < a && a < 150 && true){
 					PotentialT	=	GENERATE::Picker(isPawn%6, from, OwnBoard, Enemy, C.Side_to_move, 0) & Enemy;
 					while (PotentialT != 0){
-						int potentialTarget	=	BitBoardOp::BitPop(PotentialT);
+						int potentialTarget	=	BitOp::BitPop(PotentialT);
 						a += VALUE[C.Sq[potentialTarget]]/((isPawn%6 + 4)*2.5);
 					}
 				}
@@ -72,7 +72,7 @@ ExtMove *MoveEncoding (int isPawn, int Sq, BitBoard Target, ExtMove *MoveList, B
 		}
 	} else {
 		while (Target != 0){
-			to				=	BitBoardOp::BitPop(Target);
+			to				=	BitOp::BitPop(Target);
 			BitBoard		PawnDes		=	BIT1 >> to;
 			if ( ( ( PawnDes & Rank1 ) || ( PawnDes & Rank8 ) ) != 0 ){
 				if ( ( PawnDes & Enemy ) != 0 )	{
@@ -109,7 +109,7 @@ ExtMove *MoveEncoding (int isPawn, int Sq, BitBoard Target, ExtMove *MoveList, B
 					if (-40 < a && a < 150){
 						PotentialT	=	GENERATE::Pawn(from, OwnBoard, Enemy, C.Side_to_move, EMPTY_BRD) & Enemy;
 						while (PotentialT != 0){
-							int potentialTarget	=	BitBoardOp::BitPop(PotentialT);
+							int potentialTarget	=	BitOp::BitPop(PotentialT);
 							a += (VALUE[C.Sq[potentialTarget]]/5);
 						}
 					}
@@ -239,7 +239,7 @@ int AllMove( struct BOARD A, ExtMove *MoveList, int Color ){
 	for (int i	=	0; i < 6; i++){
 		while (Pieces[i] != 0){
 			BitBoard		MoveHolder;
-			int position	=	BitBoardOp::BitPop(Pieces[i]);
+			int position	=	BitOp::BitPop(Pieces[i]);
 			MoveHolder		=	Picker(i, position, OwnPieces, EnemyPieces, Color, EMPTY_BRD);
 			MoveList		=	MoveEncoding(i, position, MoveHolder, MoveList, EnemyPieces, A, &MOVELIST_TOTAL_ITEMS);
 			Moves[i]		|=	MoveHolder;
@@ -267,7 +267,7 @@ int CaptureMove( struct BOARD A, ExtMove *MoveList, int Color ){
 	for (int i	=	0; i < 6; i++){
 		while (Pieces[i] != 0){
 			BitBoard		MoveHolder;
-			int position	=	BitBoardOp::BitPop(Pieces[i]);
+			int position	=	BitOp::BitPop(Pieces[i]);
 			MoveHolder		=	Picker(i, position, OwnPieces, EnemyPieces, Color, EMPTY_BRD) & EnemyPieces;
 			MoveList		=	MoveEncoding(i, position, MoveHolder, MoveList, EnemyPieces, A, &MOVELIST_TOTAL_ITEMS);
 			Moves[i]		|=	MoveHolder;
@@ -295,13 +295,13 @@ BitBoard Pawn		(int pos, BitBoard OwnPieces, BitBoard EnemyPieces, int Color, Bi
 	if (Color	==	WHITE){
 		ValidMoves	|=	( position	<< 8 ) & ~( OwnPieces | EnemyPieces ) & ~cap;	
 		ValidMoves  |=  (ValidMoves & Rank3) << 8 & ~( OwnPieces | EnemyPieces ) & ~cap;
-		ValidMoves	|=	( (	( position	<< 7 ) & FileH )  ^ (position << 7 )	) & ( EnemyPieces | cap );
-		ValidMoves	|=	( (	( position	<< 9 ) & FileA )  ^ (position << 9 )	) & ( EnemyPieces | cap );
+		ValidMoves	|=	( (	( position	<< 7 ) & FileA )  ^ (position << 7 )	) & ( EnemyPieces | cap );
+		ValidMoves	|=	( (	( position	<< 9 ) & FileH )  ^ (position << 9 )	) & ( EnemyPieces | cap );
 	} else {
 		ValidMoves	=	(position	>> 8 ) & ~( OwnPieces | EnemyPieces ) & ~cap;
 		ValidMoves  |=  (ValidMoves & Rank6) >> 8 & ~( OwnPieces | EnemyPieces ) & ~cap;
-		ValidMoves	|=	( (	( position	>> 7 ) & FileA )  ^ (position >> 7 )	) & ( EnemyPieces | cap );
-		ValidMoves	|=	( (	( position	>> 9 ) & FileH )  ^ (position >> 9 )	) & ( EnemyPieces | cap );
+		ValidMoves	|=	( (	( position	>> 7 ) & FileH )  ^ (position >> 7 )	) & ( EnemyPieces | cap );
+		ValidMoves	|=	( (	( position	>> 9 ) & FileA )  ^ (position >> 9 )	) & ( EnemyPieces | cap );
 	}
 	return ValidMoves;
 }
@@ -392,7 +392,7 @@ BOARD	MakeMove(BOARD initial, ExtMove transformer){
 	initial.CurrentBoard[1]	=	initial.Pieces[bP] | initial.Pieces[bN] | initial.Pieces[bR] | initial.Pieces[bB] | initial.Pieces[bK] | initial.Pieces[bQ];
 	initial.Side_to_move	^=	0x01;
 	initial.PreviousMove	=	transformer.move;
-	initial.PrevMove[initial.No_Ply++]	=	transformer.move;
+	initial.No_Ply++;
 	return initial;
 }
 
@@ -442,10 +442,11 @@ BOARD	MakeMove(BOARD initial, Move transformer){
 	initial.CurrentBoard[1]	=	initial.Pieces[bP] | initial.Pieces[bN] | initial.Pieces[bR] | initial.Pieces[bB] | initial.Pieces[bK] | initial.Pieces[bQ];
 	initial.Side_to_move	^=	0x01;
 	initial.PreviousMove	=	transformer;//
-	initial.PrevMove[initial.No_Ply++]	=	transformer;
+	initial.No_Ply++;
 	return initial;
 }
 }
+
 
 //Unfinished Undo Move
 
