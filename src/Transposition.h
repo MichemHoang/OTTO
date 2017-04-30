@@ -27,8 +27,6 @@ struct HashEntry{
 	uint8_t		Node_Type;	
 };
 
-extern int 	yolo;
-
 template <typename T, typename HKey> 
 class HASH_TABLE{
 	private:

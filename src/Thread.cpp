@@ -1,19 +1,12 @@
 #include "Thread.h"
 
-using namespace std;
-BOARD	INIT;
-time_t 	now;
-int 	SIGNAL	=	0;
-bool	UNLOCK	=	false;
-Search	GAME;
-
-void		InitBoard()				{
+void	THREAD::InitBoard()				{
 	FEN_Op::READ_FEN(STANDARD, &INIT);
 	//"rnbqk2r/pp3ppp/4pn2/2pp4/1bPP4/2N1PN2/PP3PPP/R1BQKB1R w KQkq - 0 5 "
 	BitOp::getBoardInfo(INIT);
 }
 
-void Init_engine(){
+void 	THREAD::Init_engine(){
 	cout	<< "MICHEM 1.8 ALPHA ACTIVATED\n";
 	INITIALIZE::Mask();
 	INITIALIZE::MoveData();
@@ -22,7 +15,7 @@ void Init_engine(){
 	InitBoard();
 }
 
-void Display_Move(BOARD A){
+void 	THREAD::Display_Move(BOARD A){
 	ExtMove ok[265];
 	int size=	GENERATE::AllMove(A, ok, A.Side_to_move);
 	ExtMove *lo	=	ok;
@@ -32,7 +25,7 @@ void Display_Move(BOARD A){
 	}
 }
 
-void *Timer(void *){
+void 	THREAD::Timer(){
 	bool	Stop = false;
 	int SearchTime;
 	int startTime = time(&now);
@@ -51,7 +44,7 @@ void *Timer(void *){
 	pthread_exit(NULL);
 }
 
-void	AIMove(Search *A, int *TotalTime, int level, pair<Move, int> *ANS){
+void	THREAD::AIMove(Search *A, int *TotalTime, int level, pair<Move, int> *ANS){
 	*ANS	=	A->SearchPosition(level);
 	cout	<< "Time = " << A->getTime() << endl;
 	*TotalTime	+=	A->getTime();
@@ -65,7 +58,7 @@ void	AIMove(Search *A, int *TotalTime, int level, pair<Move, int> *ANS){
 	cout	<< "AverageTime	= " << (double)(*TotalTime)/(double)(INIT.No_Ply) << endl;;
 }
 
-void *StartGame(void * threadArg){
+void 	THREAD::StartGame(void * threadArg){
 	int		level, AIvsAI, MaxMove, Side;
 	int		*PTR;
 	int		TotalTime		= 0;
@@ -74,6 +67,8 @@ void *StartGame(void * threadArg){
 	PTR			=	(int *) threadArg;
 	level		=	PTR[0];	MaxMove		=	PTR[1];
 	AIvsAI		=	PTR[2];	Side		=	PTR[3];
+	//level = 8; MaxMove = 5; AIvsAI = 0; Side = 0;
+	cout	<< "level = " << level << endl;
 	pair<Move, int>	RES;
 	if (AIvsAI){
 		for (int i = 0; i < MaxMove * 2; i++){//MaxMove * 2

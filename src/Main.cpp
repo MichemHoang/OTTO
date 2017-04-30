@@ -1,10 +1,11 @@
 #include <stdio.h>
 #include <iostream>
+#include <thread>
 #include "Thread.h"
 
 int main(){
-	Init_engine();
-	pthread_t	Game, GameClock;
+	THREAD A;
+	A.Init_engine();
 	int	Arg[4];
 	srand(time(0));
 	cout << "enter level : ";		cin >> Arg[0];
@@ -14,7 +15,11 @@ int main(){
 		cout	<< "BLACK or WHITE? BLACK = " << WHITE << "  WHITE = " << BLACK << endl; 
 		cin		>> Arg[3];
 	}
-	pthread_create(&Game, NULL, StartGame, (void *)&Arg);
-	pthread_create(&GameClock, NULL, Timer, NULL);
-	pthread_exit(NULL);
+	//pthread_create(&Game, NULL, StartGame, (void *)&Arg);
+	//pthread_create(&GameClock, NULL, Timer, NULL);
+	//pthread_exit(NULL);
+	std::thread Game(&THREAD::StartGame, &A, (void *)&Arg);
+	std::thread GameClock(&THREAD::Timer, &A);
+	Game.join();
+	GameClock.join();
 }

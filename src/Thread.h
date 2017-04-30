@@ -16,16 +16,21 @@
  * Timer, main engine, IO
  */
 
-
-void	InitBoard()	;
-
-void 	Init_engine();
-
-void 	Display_Move(BOARD A);
-
-void 	*StartGame(void * threadArg);
-
-void 	*Timer(void *);
+class THREAD{
+	private:
+		BOARD	INIT;
+		time_t 	now;
+		int 	SIGNAL	=	0;
+		bool	UNLOCK	=	false;
+		Search	GAME;
+	public:
+		void	AIMove(Search *A, int *TotalTime, int level, pair<Move, int> *ANS);
+		void	InitBoard()	;
+		void 	Init_engine();
+		void 	Display_Move(BOARD A);
+		void 	StartGame(void *threadArg);
+		void 	Timer();
+};
 
 #endif 
 
