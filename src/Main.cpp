@@ -18,8 +18,10 @@ int main(){
 	//pthread_create(&Game, NULL, StartGame, (void *)&Arg);
 	//pthread_create(&GameClock, NULL, Timer, NULL);
 	//pthread_exit(NULL);
+	std::thread Signal(&THREAD::SignalHandler, &A);
 	std::thread Game(&THREAD::StartGame, &A, (void *)&Arg);
 	std::thread GameClock(&THREAD::Timer, &A);
 	Game.join();
 	GameClock.join();
+	Signal.join();
 }

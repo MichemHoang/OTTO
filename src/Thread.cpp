@@ -28,20 +28,34 @@ void 	THREAD::Display_Move(BOARD A){
 void 	THREAD::Timer(){
 	bool	Stop = false;
 	int SearchTime;
-	int startTime = time(&now);
+	int startTime;
 	string line;
 	while (!UNLOCK){
-		sleep(4);
+		switch (SIGNAL){
+		case BEGIN_SEARCH:
+			startTime = time(&now);
+			SIGNAL	=	SEARCHING;
+			break;
+		case SHOWTIME:
+			cout	<< "SearchTime so far: " << SearchTime << endl;
+			SIGNAL	=	SEARCHING;
+			break;
+		case TIMEOUT:
+			Stop = true;
+			break;
+		}
+		sleep(2);
 		SearchTime	=	time(&now) - startTime;
 		if (SearchTime > 500 || Stop) {
+			cout	<< "Time Out";
+			SearchTime	=	0;
 			GAME.TimeOut(true);
-			SIGNAL	=	1;
-			while (SIGNAL == 1){}
+			SIGNAL	=	WAITING;
+			while (SIGNAL == WAITING){}
 			startTime = time(&now);
 			Stop = false;
 		}
 	}
-	pthread_exit(NULL);
 }
 
 void	THREAD::AIMove(Search *A, int *TotalTime, int level, pair<Move, int> *ANS){
@@ -67,8 +81,7 @@ void 	THREAD::StartGame(void * threadArg){
 	PTR			=	(int *) threadArg;
 	level		=	PTR[0];	MaxMove		=	PTR[1];
 	AIvsAI		=	PTR[2];	Side		=	PTR[3];
-	//level = 8; MaxMove = 5; AIvsAI = 0; Side = 0;
-	cout	<< "level = " << level << endl;
+	SIGNAL	=	BEGIN_SEARCH;
 	pair<Move, int>	RES;
 	if (AIvsAI){
 		for (int i = 0; i < MaxMove * 2; i++){//MaxMove * 2
@@ -76,9 +89,9 @@ void 	THREAD::StartGame(void * threadArg){
 			if (RES.second > 9666)		{cout	<< "Player 1 win\n"; 	break;}
 			if (RES.second < -9666)		{cout	<< "Player 2 win\n";	break;}
 			//RESET SEARCH TIMER
-			SIGNAL = 0;
+			SIGNAL = BEGIN_SEARCH;
 			GAME.TimeOut(false);
-			sleep(3);	//CPU relief
+			sleep(2);	//CPU relief
 		}
 	} else
 		for (int i = 0; i < MaxMove * 2; i++){
@@ -109,20 +122,31 @@ void 	THREAD::StartGame(void * threadArg){
 				cout	<< "Your Move " << endl;
 				cin		>> PlayerMove;
 				DECODE::DecodeMove(ok[PlayerMove].move); cout	<< (int)ok[PlayerMove].move << endl;
-				if (PlayerMove < 0) break;
+				if (PlayerMove < 0) {
+					SIGNAL = SEARCHING;
+					break;
+				}
 				INIT	=	MOVE::MakeMove(INIT, ok[PlayerMove]);
 				BitOp::getBoardInfo(INIT);	
 				cout	<< "FEN STRING = " << FEN_Op::toFEN(INIT) << endl;
 				GAME.setPosition(INIT);
 				//RESET SEARCH TIMER
 				GAME.TimeOut(false);
-				SIGNAL = 0; 
+				SIGNAL = BEGIN_SEARCH; 
 			}	
 		}
 	UNLOCK	=	true;
 	cout	<< "Total Time = " 		<< TotalTime << endl;
 	cout	<< "Evaluate Final Board : " << EVALUATION::Evaluate(INIT, INIT.Side_to_move) << endl;
-	pthread_exit(NULL);
+}
+
+void	THREAD::SignalHandler(){
+	int UserInput;
+	while (!UNLOCK){
+		cin >> UserInput;
+		if (UserInput < 3 && UserInput > -3)
+			SIGNAL	=	UserInput;
+	}
 }
 
 

@@ -53,6 +53,14 @@ const std::string	STANDARD	=	"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq
 #define	bQ		10
 #define	bK		11
 
+enum Signal {
+	TIMEOUT			=	-2,
+	BEGIN_SEARCH 	= 	2,
+	SHOWTIME		=	-1,
+	SEARCHING		=	0,
+	WAITING			=	1
+};
+
 enum MoveType {
 	QUIET_MOVES		=	0,	DOUBLE_PUSH		=	1,	KING_CASTLE		=	2,
 	QUEEN_CASTLE	=	3,	CAPTURE			=	4,	K_PROMO			=	8,

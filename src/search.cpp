@@ -195,7 +195,8 @@ pair<Move, int>	Search::SearchPosition (int MAX_DEPTH){
 				break;
 			}
 		}
-		if (!OutOfTime)	STORE_MOVE	=	OPTIMAL_MOVE;
+		if (OutOfTime)	OPTIMAL_MOVE =	STORE_MOVE;
+		else STORE_MOVE = OPTIMAL_MOVE;
 		Alpha		=	STORE_MOVE.second - 150;
 		Beta		=	STORE_MOVE.second + 150;
 	}

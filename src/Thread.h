@@ -20,8 +20,8 @@ class THREAD{
 	private:
 		BOARD	INIT;
 		time_t 	now;
-		int 	SIGNAL	=	0;
-		bool	UNLOCK	=	false;
+		int 	SIGNAL;
+		bool	UNLOCK;
 		Search	GAME;
 	public:
 		void	AIMove(Search *A, int *TotalTime, int level, pair<Move, int> *ANS);
@@ -30,6 +30,7 @@ class THREAD{
 		void 	Display_Move(BOARD A);
 		void 	StartGame(void *threadArg);
 		void 	Timer();
+		void	SignalHandler();
 };
 
 #endif 
