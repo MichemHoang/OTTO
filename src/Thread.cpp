@@ -9,7 +9,8 @@ Search	GAME;
 
 void		InitBoard()				{
 	FEN_Op::READ_FEN(STANDARD, &INIT);
-	BitBoardOp::getBoardInfo(INIT);
+	//"rnbqk2r/pp3ppp/4pn2/2pp4/1bPP4/2N1PN2/PP3PPP/R1BQKB1R w KQkq - 0 5 "
+	BitOp::getBoardInfo(INIT);
 }
 
 void Init_engine(){
@@ -32,15 +33,19 @@ void Display_Move(BOARD A){
 }
 
 void *Timer(void *){
+	bool	Stop = false;
+	int SearchTime;
 	int startTime = time(&now);
+	string line;
 	while (!UNLOCK){
 		sleep(4);
-		int SearchTime	=	time(&now) - startTime;
-		if (SearchTime > 600) {
+		SearchTime	=	time(&now) - startTime;
+		if (SearchTime > 500 || Stop) {
 			GAME.TimeOut(true);
 			SIGNAL	=	1;
 			while (SIGNAL == 1){}
 			startTime = time(&now);
+			Stop = false;
 		}
 	}
 	pthread_exit(NULL);
@@ -53,9 +58,10 @@ void	AIMove(Search *A, int *TotalTime, int level, pair<Move, int> *ANS){
 	Display_Move(INIT);
 	DECODE::DecodeMove(ANS->first);
 	INIT	=	MOVE::MakeMove(INIT, ANS->first);
-	BitBoardOp::getBoardInfo(INIT);
+	BitOp::getBoardInfo(INIT);
 	A->setPosition(INIT);
-	cout	<< "SearchNode = " << GAME.getSearchNode();
+	cout	<< "FEN STRING = " << FEN_Op::toFEN(INIT) << endl;
+	cout	<< "SearchNode = " << GAME.getSearchNode() << endl;
 	cout	<< "AverageTime	= " << (double)(*TotalTime)/(double)(INIT.No_Ply) << endl;;
 }
 
@@ -63,7 +69,7 @@ void *StartGame(void * threadArg){
 	int		level, AIvsAI, MaxMove, Side;
 	int		*PTR;
 	int		TotalTime		= 0;
-	GAME.setTableSize(8000000);
+	GAME.setTableSize(4000000);
 	GAME.setPosition(INIT);
 	PTR			=	(int *) threadArg;
 	level		=	PTR[0];	MaxMove		=	PTR[1];
@@ -80,7 +86,7 @@ void *StartGame(void * threadArg){
 			sleep(3);	//CPU relief
 		}
 	} else
-		for (int i = 0; i < MaxMove; i++){
+		for (int i = 0; i < MaxMove * 2; i++){
 			if (INIT.Side_to_move == Side){
 				bool FoundOpening = false;
 				if (INIT.No_Ply <=10){
@@ -89,7 +95,7 @@ void *StartGame(void * threadArg){
 					if (FindOpening(Hash, &Koas)) {
 						DECODE::DecodeMove(Koas);
 						INIT	=	MOVE::MakeMove(INIT, Koas);
-						BitBoardOp::getBoardInfo(INIT);
+						BitOp::getBoardInfo(INIT);
 						FoundOpening = true;	
 						GAME.setPosition(INIT);
 					}
@@ -110,8 +116,9 @@ void *StartGame(void * threadArg){
 				DECODE::DecodeMove(ok[PlayerMove].move); cout	<< (int)ok[PlayerMove].move << endl;
 				if (PlayerMove < 0) break;
 				INIT	=	MOVE::MakeMove(INIT, ok[PlayerMove]);
-				BitBoardOp::getBoardInfo(INIT);	
+				BitOp::getBoardInfo(INIT);	
 				cout	<< "FEN STRING = " << FEN_Op::toFEN(INIT) << endl;
+				GAME.setPosition(INIT);
 				//RESET SEARCH TIMER
 				GAME.TimeOut(false);
 				SIGNAL = 0; 

@@ -72,7 +72,7 @@ namespace BEGIN{
 	const int N_VALUE	=	320;
 	const int B_VALUE	=	340;
 	const int K_VALUE	=	15536;
-	const int Q_VALUE	=	970;
+	const int Q_VALUE	=	910;
 	const int R_VALUE	=	510;
 }
 
@@ -113,5 +113,6 @@ struct ExtMove {
 	
 	uint8_t getFlags() const {return (move >> 12) & 0x0f;}
 };
+
 
 #endif 

@@ -20,11 +20,11 @@ using namespace std;
 
 class Search{
 	private:
+		Move		KillerMove[15][3];
 		bool		OutOfTime;
 		uint64_t	SearchNode;
 		BOARD		Position;
 		HASH_TABLE<HashEntry, Key> TRANS_TABLE;
-		int 		History_heristic[64][64];
 		int			MoveTime;
 	public:
 		Search	();

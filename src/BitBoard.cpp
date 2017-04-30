@@ -134,7 +134,7 @@ const uint64_t debruijn64 	= 0x03f79d71b4cb0a89;
 
 const BitBoard DarkSquares 	= 0xAA55AA55AA55AA55ULL;
 
-namespace BitBoardOp{
+namespace BitOp{
 bool isSubsetOf	( BitBoard a, BitBoard b) {return (a & b) == a;}
 
 int LSBit		( BitBoard bb ){
@@ -221,7 +221,7 @@ void Mask	(){
 	//Generate population count for 1 byte
 	for (int i	= 0; i< 65536; i++){
 		o	=	i;
-		BitCount[i]	=	BitBoardOp::population(o);
+		BitCount[i]	=	BitOp::population(o);
 	}
 	BitBoard	temp;		
 	//GenerateAttackMovefor Pawn
@@ -281,7 +281,7 @@ void MoveData(){
 		//Calulating magic Bitboard for Rooks;
 		mask	=	MASK::RMask[i];	
 		for (int jj	=	0; jj < 12; jj++){
-			variation [jj]	=	BitBoardOp::BitPop(mask);
+			variation [jj]	=	BitOp::BitPop(mask);
 			if (variation[jj]	==	-1) break;
 		}
 		length	=	1L << (64 - Shift_R[63-i]);
@@ -291,7 +291,7 @@ void MoveData(){
 			BitBoard tmp	=	k;
 			Var		=	MASK::RMask[i];
 			while (tmp != 0){
-				int a	=	BitBoardOp::BitPop(tmp);
+				int a	=	BitOp::BitPop(tmp);
 				if (a == -1) break;
 				Var		^=	(BIT1 >> 	variation[63 - a]);
 			}	
@@ -307,7 +307,7 @@ void MoveData(){
 		//Calculating magic Bitboard for Bishops
 		mask	=	MASK::BMask[i];	
 		for (int jj	=	0; jj < 12; jj++){
-			variation [jj]	=	BitBoardOp::BitPop(mask);
+			variation [jj]	=	BitOp::BitPop(mask);
 			if (variation[jj]	==	-1) break;
 		}
 		length	=	1L << (64 - Shift_B[63-i]);
@@ -317,7 +317,7 @@ void MoveData(){
 			BitBoard tmp	=	k;
 			Var		=	MASK::BMask[i];
 			while (tmp != 0){
-				int a	=	BitBoardOp::BitPop(tmp);
+				int a	=	BitOp::BitPop(tmp);
 				if (a == -1) break;
 				Var		^=	(BIT1 >> 	variation[63 - a]);
 			}	
@@ -413,8 +413,7 @@ string	toFEN	(BOARD A){
 	FEN_STRING	+= std::to_string(a) + " ";
 	return FEN_STRING;
 }
-
-}
+}//end if namespace
 
 
 

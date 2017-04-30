@@ -3,9 +3,6 @@
 Search::Search	(){
 	TRANS_TABLE.setSize(1000000);
 	FEN_Op::READ_FEN(STANDARD, &Position);
-	for (int i = 0; i < 64; i++)
-		for (int j = 0; j < 64; j++)
-			History_heristic[i][j]	=	0;
 	SearchNode	=	0;
 }
 
@@ -74,8 +71,11 @@ pair<Move, int>	Search::AlphaBeta (BOARD A, int DEPTH, int Alpha, int Beta, int 
 		}
 	}
 	SearchNode++;
+	
 	//----------------------------NEGAMAX--------------------------
 	int v, BestValue;
+	
+	//Reaching Leaf node
 	if (DEPTH	==	0 || A.Pieces[wK + 6* (A.Side_to_move)] == 0) {
 		if ( A.Pieces[wK + 6* (A.Side_to_move)] == 0 )	{
 			return  make_pair(A.PreviousMove, -9999);
@@ -87,6 +87,8 @@ pair<Move, int>	Search::AlphaBeta (BOARD A, int DEPTH, int Alpha, int Beta, int 
 	ExtMove 	*lo		=	MoveList;
 	int 		FSIZE	=	GENERATE::AllMove(A, lo, A.Side_to_move);
 	v	=	MIN_VALUE;
+	
+	//Best move from hash table
 	if (TRANS_TABLE.FindEntry(ZobristHash, &Memo))	{
 		for (int i = 0; i < FSIZE; i++) {
 			if (MoveList[i].move == Memo.BestMove) {
@@ -95,6 +97,16 @@ pair<Move, int>	Search::AlphaBeta (BOARD A, int DEPTH, int Alpha, int Beta, int 
 			}
 		}
 	}
+	
+	//Sibling KillerMove
+	
+	for (int iter = 0; iter < FSIZE ; iter++){
+		if (MoveList[iter].move == KillerMove[DEPTH][0]){
+			MoveList[iter].value += 100;
+			break;
+		}
+	}//*/
+	
 	for (int iterYo = 0; iterYo < FSIZE; iterYo++){
 		int iMin = iterYo;
 		for (int j = iterYo+1; j < FSIZE; j++)	if (MoveList[j].value > MoveList[iMin].value)	iMin	=	j;
@@ -110,7 +122,10 @@ pair<Move, int>	Search::AlphaBeta (BOARD A, int DEPTH, int Alpha, int Beta, int 
 		if (OutOfTime == 1)	return result;
 		if ( BestValue != v ) 	result	=	make_pair(MoveList[iterYo].move, v);
 		if ( Alpha < v) 		Alpha	=	v;
-		if ( Alpha >= Beta )  {	break; }
+		if ( Alpha >= Beta )  {	
+			if (MoveList[iterYo].getFlags() != 4 )	KillerMove[DEPTH][0] = MoveList[iterYo].move;
+			break;
+		}
     }
     
     //---------------------STORE_NODES_IN_DATABASE---------------------
@@ -136,29 +151,18 @@ pair<Move, int>	Search::SearchPosition (int MAX_DEPTH){
 	int			Material_Point	=	0;
 	BitString 	BoardHashValue	=	GetKey(Position);
 	ExtMove 	FirstBatch[100];
-	Move		DrawCondition;
 	int			Alpha	=	MIN_VALUE;
 	int 		Beta	=	MAX_VALUE;
 	pair<Move, int> STORE_MOVE;
 	pair<Move, int> OPTIMAL_MOVE;
 	OutOfTime	=	false;
-	
-	//Draw Detection
-	if (Position.No_Ply	>= 8){
-		if ((Position.PrevMove[Position.No_Ply - 1] == Position.PrevMove[Position.No_Ply - 5]) && 
-			(Position.PrevMove[Position.No_Ply - 9] == Position.PrevMove[Position.No_Ply - 5])){
-			if (Position.PrevMove[Position.No_Ply - 2] == Position.PrevMove[Position.No_Ply - 6]) {
-				DrawCondition	=	Position.PrevMove[Position.No_Ply - 2];
-			}
-		} else DrawCondition	=	0;
-	}
-	
 	//Checking gamestate based on material score
 	for (int i = 0; i < 5; i++) 
-		Material_Point += (BitBoardOp::PopsCount(Position.Pieces[i] | Position.Pieces[i + 6])) * VALUE[i];
-	if (Material_Point <= 7600) 
+		Material_Point += (BitOp::PopsCount(Position.Pieces[i] | Position.Pieces[i + 6])) * VALUE[i];
+	if (Material_Point <= 7600) {
+		cout	<< "Middle Game\n";
 		MAX_DEPTH += 2;
-		
+	}
 	//Reduce Depth based on killer capture	
 	ExtMove *Batch	=	FirstBatch;
 	int BSIZE	=	GENERATE::AllMove(Position, Batch, Position.Side_to_move);
@@ -172,8 +176,10 @@ pair<Move, int>	Search::SearchPosition (int MAX_DEPTH){
 		};
 	}
 	if (FirstBatch[0].getFlags() == 4)
-		if ((FirstBatch[0].value - FirstBatch[1].value ) >= 250) 
+		if ((FirstBatch[0].value - FirstBatch[1].value ) >= 250) {
+			cout	<< "Capure reduction\n";
 			MAX_DEPTH -= 2;
+		}
 	
 	//Iterative deepening search loop
 	for (int inc =	2; inc >= 0; inc-=2){
@@ -189,8 +195,7 @@ pair<Move, int>	Search::SearchPosition (int MAX_DEPTH){
 				break;
 			}
 		}
-		if (OutOfTime) 	OPTIMAL_MOVE	=	STORE_MOVE;
-		else 			STORE_MOVE	=	OPTIMAL_MOVE;
+		if (!OutOfTime)	STORE_MOVE	=	OPTIMAL_MOVE;
 		Alpha		=	STORE_MOVE.second - 150;
 		Beta		=	STORE_MOVE.second + 150;
 	}

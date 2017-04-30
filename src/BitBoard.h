@@ -65,10 +65,9 @@ struct	BOARD{
 	uint8_t		No_Ply;
 	uint8_t		Side_to_move;
 	Move		PreviousMove;
-	Move		PrevMove[80];
 };
 
-namespace BitBoardOp{
+namespace BitOp{
 bool 	isSubsetOf	( BitBoard a, BitBoard b);
 int		BitPop		( BitBoard &A );
 int 	LSBit		( BitBoard A );
