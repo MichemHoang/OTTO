@@ -15,13 +15,10 @@ int main(){
 		cout	<< "BLACK or WHITE? BLACK = " << WHITE << "  WHITE = " << BLACK << endl; 
 		cin		>> Arg[3];
 	}
-	//pthread_create(&Game, NULL, StartGame, (void *)&Arg);
-	//pthread_create(&GameClock, NULL, Timer, NULL);
-	//pthread_exit(NULL);
-	std::thread Signal(&THREAD::SignalHandler, &A);
+	std::thread SignaL(&THREAD::SignalHandler, &A);
 	std::thread Game(&THREAD::StartGame, &A, (void *)&Arg);
 	std::thread GameClock(&THREAD::Timer, &A);
 	Game.join();
 	GameClock.join();
-	Signal.join();
+	SignaL.join();
 }

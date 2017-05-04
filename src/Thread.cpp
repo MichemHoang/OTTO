@@ -7,6 +7,7 @@ void	THREAD::InitBoard()				{
 }
 
 void 	THREAD::Init_engine(){
+	cout	<< sizeof(HashEntry) << endl;
 	cout	<< "MICHEM 1.8 ALPHA ACTIVATED\n";
 	INITIALIZE::Mask();
 	INITIALIZE::MoveData();
@@ -15,9 +16,20 @@ void 	THREAD::Init_engine(){
 	InitBoard();
 }
 
-void 	THREAD::Display_Move(BOARD A){
+void 	THREAD::Display_Move(BOARD A, int MType){
 	ExtMove ok[265];
-	int size=	GENERATE::AllMove(A, ok, A.Side_to_move);
+	int size;
+	switch (MType){
+		case (0):	size=	GENERATE::AllMove(A, ok, A.Side_to_move); break;
+		case (1):	size=	GENERATE::CaptureMove(A, ok, A.Side_to_move); 
+					cout <<"Gen Capture\n"; 
+					cout << "size = " << size << endl;
+					break;
+		case (2):	size=	GENERATE::QuietMove(A, ok, A.Side_to_move); 
+					cout <<"Gen Quiet\n"; 
+					cout << "size = " << size << endl;
+					break;
+	}
 	ExtMove *lo	=	ok;
 	for (int t = 0; t < size; t++){
 		cout	<< t << ": ";
@@ -46,7 +58,7 @@ void 	THREAD::Timer(){
 		}
 		sleep(2);
 		SearchTime	=	time(&now) - startTime;
-		if (SearchTime > 500 || Stop) {
+		if (SearchTime > 1000 || Stop) {
 			cout	<< "Time Out";
 			SearchTime	=	0;
 			GAME.TimeOut(true);
@@ -62,11 +74,12 @@ void	THREAD::AIMove(Search *A, int *TotalTime, int level, pair<Move, int> *ANS){
 	*ANS	=	A->SearchPosition(level);
 	cout	<< "Time = " << A->getTime() << endl;
 	*TotalTime	+=	A->getTime();
-	Display_Move(INIT);
+	Display_Move(INIT, 0);
 	DECODE::DecodeMove(ANS->first);
 	INIT	=	MOVE::MakeMove(INIT, ANS->first);
 	BitOp::getBoardInfo(INIT);
 	A->setPosition(INIT);
+	cout	<< "Database size = " << GAME.getDatabaseSize() << endl;
 	cout	<< "FEN STRING = " << FEN_Op::toFEN(INIT) << endl;
 	cout	<< "SearchNode = " << GAME.getSearchNode() << endl;
 	cout	<< "AverageTime	= " << (double)(*TotalTime)/(double)(INIT.No_Ply) << endl;;
@@ -115,7 +128,7 @@ void 	THREAD::StartGame(void * threadArg){
 					if (RES.second < -9666)		{cout	<< "Player 2 win\n";	break;}
 				}
 			}  else {
-				Display_Move (INIT);
+				Display_Move (INIT, 0);
 				ExtMove ok[70];
 				int		PlayerMove;
 				GENERATE::AllMove(INIT, ok, INIT.Side_to_move);
@@ -138,6 +151,7 @@ void 	THREAD::StartGame(void * threadArg){
 	UNLOCK	=	true;
 	cout	<< "Total Time = " 		<< TotalTime << endl;
 	cout	<< "Evaluate Final Board : " << EVALUATION::Evaluate(INIT, INIT.Side_to_move) << endl;
+	cout	<< "Endgame (Press sth)\n";
 }
 
 void	THREAD::SignalHandler(){

@@ -54,11 +54,20 @@ int		Search::QuiesceneSearch	(BOARD A, int Alpha, int Beta){
 }
 
 pair<Move, int>	Search::AlphaBeta (BOARD A, int DEPTH, int Alpha, int Beta, int FINAL_DEPT, Key ZobristHash){
+	//BitOp::getBoardInfo(A);
+	//cout	<< "Alpha - Beta\n";
+	bool		BreakSign = false;
 	pair<Move, int> result;
-	int	Alpha0		=		Alpha;
+	int			Alpha0	=	Alpha;
+	ExtMove 	MoveList[70];
+	int			ListSize, v, BestValue, LateMove;
+	ExtMove		HashMove;
+	HashMove.move	=	0;
+	
 	//-------------------Check if value is in Hash Table-----------------
 	HashEntry Memo;
 	if (TRANS_TABLE.FindEntry(ZobristHash, &Memo)){
+		HashMove.move	=	Memo.BestMove;
 		if ( Memo.Depth	>=	(DEPTH)){
 			switch (Memo.Node_Type){
 				case EXACT		:	
@@ -67,13 +76,13 @@ pair<Move, int>	Search::AlphaBeta (BOARD A, int DEPTH, int Alpha, int Beta, int 
 				case UPPERBOUND	:	Alpha	=	max(Alpha, Memo.Evaluation);	break;
 				case LOWERBOUND	:	Beta	=	min(Beta, Memo.Evaluation);		break;
 			}
+			
 			if (Alpha >= Beta) return make_pair(A.PreviousMove, Memo.Evaluation);
 		}
 	}
 	SearchNode++;
 	
 	//----------------------------NEGAMAX--------------------------
-	int v, BestValue;
 	
 	//Reaching Leaf node
 	if (DEPTH	==	0 || A.Pieces[wK + 6* (A.Side_to_move)] == 0) {
@@ -83,51 +92,65 @@ pair<Move, int>	Search::AlphaBeta (BOARD A, int DEPTH, int Alpha, int Beta, int 
 		int evaluation	=	QuiesceneSearch(A, -Beta - 150, -Alpha + 150);
 		return make_pair(A.PreviousMove, evaluation);
 	}
-	ExtMove 	MoveList[100];
-	ExtMove 	*lo		=	MoveList;
-	int 		FSIZE	=	GENERATE::AllMove(A, lo, A.Side_to_move);
+
 	v	=	MIN_VALUE;
 	
 	//Best move from hash table
-	if (TRANS_TABLE.FindEntry(ZobristHash, &Memo))	{
-		for (int i = 0; i < FSIZE; i++) {
-			if (MoveList[i].move == Memo.BestMove) {
-				MoveList[i].value	+=	5000;
-				break;
-			}
+	if (HashMove.move != 0)	{
+		BestValue	=	v;
+		int	Temp	=	-AlphaBeta(MOVE::MakeMove(A, HashMove), DEPTH - 1, -Beta, -Alpha, 
+								   FINAL_DEPT, UpdateKey(ZobristHash, HashMove.move, A)).second;
+		v			=	max(v, Temp);
+		if (OutOfTime == 1)	return result;
+		if ( BestValue != v ) 	result	=	make_pair(HashMove.move, v);
+		if ( Alpha < v) 		Alpha	=	v;
+		if ( Alpha >= Beta )  {	
+			if (HashMove.getFlags() != 4 )	KillerMove[DEPTH][0] = HashMove.move;
+			BreakSign = true;	
 		}
 	}
 	
-	//Sibling KillerMove
+	LateMove	=	0;
+	//cout	<< "Generating Move\n";
+	if (!BreakSign){
+		ListSize	=	GENERATE::AllMove(A, MoveList, A.Side_to_move);	//Generating Capture move
 	
-	for (int iter = 0; iter < FSIZE ; iter++){
-		if (MoveList[iter].move == KillerMove[DEPTH][0]){
-			MoveList[iter].value += 100;
-			break;
+		for (int i = 0; i < ListSize; i++){
+			if (MoveList[i].move == KillerMove[DEPTH][0]){
+				MoveList[i].value = 100;
+				break;
+			}	
+		}	
+			
+		for (int iterYo = 0; iterYo < ListSize; iterYo++){
+			int iMin = iterYo;
+			for (int j = iterYo+1; j < ListSize; j++)	if (MoveList[j].value > MoveList[iMin].value)	iMin	=	j;
+			if ( iterYo != iMin )	{
+				ExtMove	tmp			=	MoveList[iterYo];
+				MoveList[iterYo]	=	MoveList[iMin];
+				MoveList[iMin]		=	tmp;
+			};
+			
+			if (ShallowDone && iterYo > ListSize/3){
+				if (DEPTH > 2 && DEPTH < FINAL_DEPT - 2 && MoveList[iterYo].value < -50)
+					LateMove	=	2;
+			}
+			
+			if (MoveList[iterYo].move != HashMove.move){
+				BestValue	=	v;
+				int	Temp	=	-AlphaBeta(MOVE::MakeMove(A, MoveList[iterYo]), DEPTH - 1 - LateMove, -Beta, -Alpha, 
+										   FINAL_DEPT, UpdateKey(ZobristHash, MoveList[iterYo].move, A)).second;
+				v			=	max(v, Temp);
+				if (OutOfTime == 1)	return result;
+				if ( BestValue != v ) 	result	=	make_pair(MoveList[iterYo].move, v);
+				if ( Alpha < v) 		Alpha	=	v;
+				if ( Alpha >= Beta )  {	
+					if (MoveList[iterYo].getFlags() != 4 )	KillerMove[DEPTH][0] = MoveList[iterYo].move;
+					break;
+				}
+			}
 		}
-	}//*/
-	
-	for (int iterYo = 0; iterYo < FSIZE; iterYo++){
-		int iMin = iterYo;
-		for (int j = iterYo+1; j < FSIZE; j++)	if (MoveList[j].value > MoveList[iMin].value)	iMin	=	j;
-		if ( iterYo != iMin )	{
-			ExtMove	tmp			=	MoveList[iterYo];
-			MoveList[iterYo]	=	MoveList[iMin];
-			MoveList[iMin]		=	tmp;
-		};
-		BestValue	=	v;
-		int	Temp	=	-AlphaBeta(MOVE::MakeMove(A, MoveList[iterYo]), DEPTH - 1, -Beta, -Alpha, 
-								   FINAL_DEPT, UpdateKey(ZobristHash, MoveList[iterYo].move, A)).second;
-		v			=	max(v, Temp);
-		if (OutOfTime == 1)	return result;
-		if ( BestValue != v ) 	result	=	make_pair(MoveList[iterYo].move, v);
-		if ( Alpha < v) 		Alpha	=	v;
-		if ( Alpha >= Beta )  {	
-			if (MoveList[iterYo].getFlags() != 4 )	KillerMove[DEPTH][0] = MoveList[iterYo].move;
-			break;
-		}
-    }
-    
+	}
     //---------------------STORE_NODES_IN_DATABASE---------------------
 	uint8_t flag;
 	if 		(BestValue		<=	Alpha0)	flag	=	UPPERBOUND;
@@ -182,6 +205,7 @@ pair<Move, int>	Search::SearchPosition (int MAX_DEPTH){
 		}
 	
 	//Iterative deepening search loop
+	ShallowDone	=	false;
 	for (int inc =	2; inc >= 0; inc-=2){
 		SearchNode	=	0;
 		OPTIMAL_MOVE	=	AlphaBeta(Position, MAX_DEPTH - inc, Alpha, Beta, MAX_DEPTH - inc, BoardHashValue);
@@ -195,6 +219,7 @@ pair<Move, int>	Search::SearchPosition (int MAX_DEPTH){
 				break;
 			}
 		}
+		ShallowDone	=	true;
 		if (OutOfTime)	OPTIMAL_MOVE =	STORE_MOVE;
 		else STORE_MOVE = OPTIMAL_MOVE;
 		Alpha		=	STORE_MOVE.second - 150;

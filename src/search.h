@@ -26,8 +26,11 @@ class Search{
 		BOARD		Position;
 		HASH_TABLE<HashEntry, Key> TRANS_TABLE;
 		int			MoveTime;
+		bool		ShallowDone;
+		int 		FINAL_DEPT;
 	public:
 		Search	();
+		void		getBranchFactor();
 		void		TimeOut (bool FIN);
 		int			getTime();
 		void 		setPosition	(BOARD Pos);
@@ -38,11 +41,5 @@ class Search{
 		pair<Move, int>	AlphaBeta (BOARD A, int DEPTH, int Alpha, int Beta, int FINAL_DEPT, Key ZobristKey);
 		pair<Move, int>	SearchPosition (int MAX_DEPTH);
 };
-
-int	QuiesceneSearch(BOARD A, int Alpha, int Beta);
-
-pair<Move, int>	DEEPENING_SEARCH (BOARD A, int MAX_DEPTH, Move Draw);
-
-pair<Move, int>	SEARCH_WITH_TABLE (BOARD A, int DEPTH, int Alpha, int Beta, int Timer, int FINAL_DEPT, Key ZobristKey);
 
 #endif 

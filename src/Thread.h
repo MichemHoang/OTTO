@@ -27,7 +27,7 @@ class THREAD{
 		void	AIMove(Search *A, int *TotalTime, int level, pair<Move, int> *ANS);
 		void	InitBoard()	;
 		void 	Init_engine();
-		void 	Display_Move(BOARD A);
+		void 	Display_Move(BOARD A, int MType);
 		void 	StartGame(void *threadArg);
 		void 	Timer();
 		void	SignalHandler();

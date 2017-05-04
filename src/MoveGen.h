@@ -21,14 +21,15 @@ inline bool operator<(const ExtMove& f, const ExtMove& s) {
 
 namespace GENERATE{
 int AllMove		( struct BOARD A, ExtMove *MoveList, int Color );
-int CaptureMove	( struct BOARD A, ExtMove *MoveList, int Color );
+int CaptureMove	( struct BOARD A, ExtMove *MoveList, int Color);
+int QuietMove	( struct BOARD A, ExtMove *MoveList, int Color);
 BitBoard Picker	(int chooser, int pos, BitBoard OwnPieces, BitBoard EnemyPieces, int Color, BitBoard capture);
-BitBoard Pawn		(int position, BitBoard OwnPieces, BitBoard EnemyPieces, int Color, BitBoard cap);
-BitBoard Knight		(int position, BitBoard OwnPieces, BitBoard EnemyPieces);
-BitBoard Bishop		(int position, BitBoard OwnPieces, BitBoard EnemyPieces);
-BitBoard Rook		(int position, BitBoard OwnPieces, BitBoard EnemyPieces);
-BitBoard Queen		(int position, BitBoard OwnPieces, BitBoard EnemyPieces);
-BitBoard King		(int position, BitBoard OwnPieces, BitBoard EnemyPieces);
+BitBoard Pawn	(int position, BitBoard OwnPieces, BitBoard EnemyPieces, int Color, BitBoard cap);
+BitBoard Knight	(int position, BitBoard OwnPieces, BitBoard EnemyPieces);
+BitBoard Bishop	(int position, BitBoard OwnPieces, BitBoard EnemyPieces);
+BitBoard Rook	(int position, BitBoard OwnPieces, BitBoard EnemyPieces);
+BitBoard Queen	(int position, BitBoard OwnPieces, BitBoard EnemyPieces);
+BitBoard King	(int position, BitBoard OwnPieces, BitBoard EnemyPieces);
 }
 
 namespace MOVE{
@@ -38,6 +39,7 @@ BOARD	UndoMove(BOARD &inital, ExtMove to);
 }
 
 void MoveOrdering	(ExtMove *MoveList);
+
 
 namespace DECODE{ 
 std::string DecodeMove	(ExtMove *A, int i);
