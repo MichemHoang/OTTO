@@ -228,12 +228,12 @@ void Mask	(){
 	for (int i	= 8; i< 56; i ++){
 		BitBoard	position	=	BIT1 >> i;
 		MASK::PMask[0][i]	=	0;
-		MASK::PMask[0][i]	=	( (	( position	<< 7 ) & FileH )  ^ (position << 7 )	) ;
-		MASK::PMask[0][i]	|=	( (	( position	<< 9 ) & FileA )  ^ (position << 9 )	) ;
+		MASK::PMask[0][i]	=	( (	( position	<< 7 ) & FileA )  ^ (position << 7 )	) ;
+		MASK::PMask[0][i]	|=	( (	( position	<< 9 ) & FileH )  ^ (position << 9 )	) ;
 		
 		MASK::PMask[1][i]	=	0;
-		MASK::PMask[1][i]	=	( (	( position	>> 7 ) & FileA )  ^ (position >> 7 )	) ;
-		MASK::PMask[1][i]	|=	( (	( position	>> 9 ) & FileH )  ^ (position >> 9 )	) ;
+		MASK::PMask[1][i]	=	( (	( position	>> 7 ) & FileH )  ^ (position >> 7 )	) ;
+		MASK::PMask[1][i]	|=	( (	( position	>> 9 ) & FileA )  ^ (position >> 9 )	) ;
 	}
 	//Generate moves for king
 	for (int i = 0; i < 64; i++){
