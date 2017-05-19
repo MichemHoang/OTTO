@@ -21,7 +21,7 @@ typedef uint64_t HashKey;
 
 const char 	 	acter [13]	=	{'P', 'N', 'B', 'R', 'Q', 'K', 'p', 'n', 'b', 'r', 'q', 'k', '.'};
 
-const int 		MAX_MOVES = 256;
+const int 		MAX_MOVES = 120;
 const int 		MAX_PLY   = 128;
 
 const uint64_t 	UNIVERSE  = 0xffffffffffffffff;
@@ -75,6 +75,12 @@ enum Castling_right{
 };
 
 
+namespace STATE{
+	const int BEGIN	=	0;
+	const int MID	=	1;
+	const int END	=	2;
+}
+
 namespace BEGIN{
 	const int P_VALUE	=	105;
 	const int N_VALUE	=	320;
@@ -108,17 +114,12 @@ const int	VALUE[13]	=	{BEGIN::P_VALUE, BEGIN::N_VALUE, BEGIN::B_VALUE, BEGIN::R_
 struct ExtMove {
 	Move move;
 	int value;
-	
+
 	uint16_t getMove() const { return move; }
-	
 	void operator=(ExtMove m) { move = m.move; value	=	m.value;	}
-	
 	bool operator>(ExtMove m) { return  value > m.value; }
-	
 	uint8_t getTo() const {return move >> 6 & 0x3f;}
-	
 	uint8_t getFrom() const {return (move) & 0x3f;}
-	
 	uint8_t getFlags() const {return (move >> 12) & 0x0f;}
 };
 

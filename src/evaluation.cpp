@@ -131,6 +131,8 @@ int	Evaluate	(BOARD A, int side){
 	//CASTLING
 	if ((A.Castling_check & ( 0xE << 4  )) == (0xE << 4  ))	CASTLING -= 50 ;
 	if ((A.Castling_check &  0xE ) == 0xE ) 				CASTLING += 50 ;
+	if (A.No_Ply < 15) CASTLING	*=	2;
+	
 	
 	//BISHOP_PAIR
 	Bishop[0]	=	A.Pieces[wB];	Bishop[1]	=	A.Pieces[bB];
@@ -204,7 +206,6 @@ int LVA	(int att_Sqr, BOARD A, int side){
 	BitBoard SlidingPiece;
 	BitBoard B;
 	int position	=	-1;
-	SlidingPiece	=	GENERATE::Queen(att_Sqr, A.CurrentBoard[side ^ 1] | BIT1 >> att_Sqr, A.CurrentBoard[side]);
 	//Check for pawn attack
 	B	=	MASK::PMask[side^1][att_Sqr]	&	A.Pieces[wP + 6*(side)];
 	while (B!=0){
@@ -219,6 +220,7 @@ int LVA	(int att_Sqr, BOARD A, int side){
 		return position;
 	}
 	
+	SlidingPiece	=	GENERATE::Queen(att_Sqr, A.CurrentBoard[side ^ 1] | BIT1 >> att_Sqr, A.CurrentBoard[side]);
 	//Check for rook/Bishop/Queen attack
 	for (int i = 0; i < 8; i++){
 		B	=	AttackRay[RayLookUp[i]][att_Sqr] & SlidingPiece ;
@@ -237,7 +239,6 @@ int LVA	(int att_Sqr, BOARD A, int side){
 	if (QPosition	!=	-1) return QPosition;
 	B	=	MASK::KMask[att_Sqr]	&	A.Pieces[wK	+	6 * side];
 	position	=	BitOp::BitPop(B);
-	//if (A.Sq[position]	==	(wN + 6 * side ))	if (QPosition	==	-1) return position; ///wtf is this for???
 	return position;
 }
 

@@ -18,6 +18,8 @@ extern double 	AverageFail;
 
 using namespace std;
 
+int		DynamicEval	(BOARD A, int Alpha, int Beta);
+
 class Search{
 	private:
 		Move		KillerMove[15][3];
@@ -28,6 +30,7 @@ class Search{
 		int			MoveTime;
 		bool		ShallowDone;
 		int 		FINAL_DEPT;
+		int			GameState;
 	public:
 		Search	();
 		void		getBranchFactor();
@@ -38,7 +41,7 @@ class Search{
 		uint64_t	getSearchNode	();
 		int 		getDatabaseSize	();
 		int			QuiesceneSearch	(BOARD A, int Alpha, int Beta);
-		pair<Move, int>	AlphaBeta (BOARD A, int DEPTH, int Alpha, int Beta, int FINAL_DEPT, Key ZobristKey);
+		pair<Move, int>	AlphaBeta (BOARD A, int DEPTH, int Alpha, int Beta, int FINAL_DEPT, Key ZobristKey, bool LMR);
 		pair<Move, int>	SearchPosition (int MAX_DEPTH);
 };
 

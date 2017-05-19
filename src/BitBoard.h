@@ -68,15 +68,15 @@ struct	BOARD{
 };
 
 namespace BitOp{
-bool 	isSubsetOf	( BitBoard a, BitBoard b);
-int		BitPop		( BitBoard &A );
-int 	LSBit		( BitBoard A );
-int 	MSBit		( BitBoard A ); 
-int		BitPopR		( BitBoard &A );
-int 	PopsCount	( BitBoard C );
+bool 	isSubsetOf		( BitBoard a, BitBoard b);
+int		BitPop			( BitBoard &A );
+int 	LSBit			( BitBoard A );
+int 	MSBit			( BitBoard A ); 
+int		BitPopR			( BitBoard &A );
+int 	PopsCount		( BitBoard C );
 void 	PrintBitBoard 	( BitBoard A );
 void	PrintSQ			( uint8_t SQ[]);
-void	getBoardInfo(BOARD A);
+void	getBoardInfo	(BOARD A);
 }
 
 namespace INITIALIZE{

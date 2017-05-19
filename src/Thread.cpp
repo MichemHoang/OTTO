@@ -1,8 +1,7 @@
 #include "Thread.h"
 
 void	THREAD::InitBoard()				{
-	FEN_Op::READ_FEN(STANDARD, &INIT);
-	//"rnbqk2r/pp3ppp/4pn2/2pp4/1bPP4/2N1PN2/PP3PPP/R1BQKB1R w KQkq - 0 5 "
+	FEN_Op::READ_FEN("rnbqk2r/pp3ppp/4pn2/2pp4/1bPP4/2N1PN2/PP3PPP/R1BQKB1R w KQkq - 0 5 ", &INIT);
 	BitOp::getBoardInfo(INIT);
 }
 
@@ -14,10 +13,12 @@ void 	THREAD::Init_engine(){
 	InitZoBrist(true);
 	INIT_BOOK();
 	InitBoard();
+	SIGNAL	=	BEGIN_SEARCH;
+	UNLOCK	=	false;
 }
 
 void 	THREAD::Display_Move(BOARD A, int MType){
-	ExtMove ok[265];
+	ExtMove ok[MAX_MOVES];
 	int size;
 	switch (MType){
 		case (0):	size=	GENERATE::AllMove(A, ok, A.Side_to_move); break;
@@ -30,7 +31,7 @@ void 	THREAD::Display_Move(BOARD A, int MType){
 					cout << "size = " << size << endl;
 					break;
 	}
-	ExtMove *lo	=	ok;
+	ExtMove*lo	=	ok;
 	for (int t = 0; t < size; t++){
 		cout	<< t << ": ";
 		DECODE::DecodeMove(lo++);
@@ -58,7 +59,7 @@ void 	THREAD::Timer(){
 		}
 		sleep(2);
 		SearchTime	=	time(&now) - startTime;
-		if (SearchTime > 1000 || Stop) {
+		if (SearchTime > 5000 || Stop) {
 			cout	<< "Time Out";
 			SearchTime	=	0;
 			GAME.TimeOut(true);
@@ -82,14 +83,13 @@ void	THREAD::AIMove(Search *A, int *TotalTime, int level, pair<Move, int> *ANS){
 	cout	<< "Database size = " << GAME.getDatabaseSize() << endl;
 	cout	<< "FEN STRING = " << FEN_Op::toFEN(INIT) << endl;
 	cout	<< "SearchNode = " << GAME.getSearchNode() << endl;
-	cout	<< "AverageTime	= " << (double)(*TotalTime)/(double)(INIT.No_Ply) << endl;;
 }
 
 void 	THREAD::StartGame(void * threadArg){
 	int		level, AIvsAI, MaxMove, Side;
 	int		*PTR;
 	int		TotalTime		= 0;
-	GAME.setTableSize(4000000);
+	GAME.setTableSize(30000000);
 	GAME.setPosition(INIT);
 	PTR			=	(int *) threadArg;
 	level		=	PTR[0];	MaxMove		=	PTR[1];
@@ -97,17 +97,18 @@ void 	THREAD::StartGame(void * threadArg){
 	SIGNAL	=	BEGIN_SEARCH;
 	pair<Move, int>	RES;
 	if (AIvsAI){
-		for (int i = 0; i < MaxMove * 2; i++){//MaxMove * 2
+		for (int i = 0; i < MaxMove * 2 - 1; i++){//MaxMove * 2
 			AIMove(&GAME, &TotalTime, level, &RES);
 			if (RES.second > 9666)		{cout	<< "Player 1 win\n"; 	break;}
 			if (RES.second < -9666)		{cout	<< "Player 2 win\n";	break;}
+			cout	<< "AverageTime	= " << (double)(TotalTime)/(double)(i + 1) << endl;
 			//RESET SEARCH TIMER
 			SIGNAL = BEGIN_SEARCH;
 			GAME.TimeOut(false);
-			sleep(2);	//CPU relief
+			sleep(1);	//CPU relief
 		}
 	} else
-		for (int i = 0; i < MaxMove * 2; i++){
+		for (int i = 0; i < MaxMove * 2 - 1; i++){
 			if (INIT.Side_to_move == Side){
 				bool FoundOpening = false;
 				if (INIT.No_Ply <=10){
@@ -126,10 +127,11 @@ void 	THREAD::StartGame(void * threadArg){
 					AIMove(&GAME, &TotalTime, level, &RES);
 					if (RES.second > 9666)		{cout	<< "Player 1 win\n"; 	break;}
 					if (RES.second < -9666)		{cout	<< "Player 2 win\n";	break;}
+					cout	<< "AverageTime	= " << (double)(TotalTime)/(double)(i/2 + 1) << endl;
 				}
 			}  else {
 				Display_Move (INIT, 0);
-				ExtMove ok[70];
+				ExtMove ok[MAX_MOVES];
 				int		PlayerMove;
 				GENERATE::AllMove(INIT, ok, INIT.Side_to_move);
 				cout	<< "Your Move " << endl;
@@ -156,7 +158,7 @@ void 	THREAD::StartGame(void * threadArg){
 
 void	THREAD::SignalHandler(){
 	int UserInput;
-	while (!UNLOCK){
+	while (!UNLOCK && false){
 		cin >> UserInput;
 		if (UserInput < 3 && UserInput > -3)
 			SIGNAL	=	UserInput;
