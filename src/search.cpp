@@ -61,8 +61,9 @@ pair<Move, int>	Search::AlphaBeta (BOARD A, int DEPTH, int Alpha, int Beta, int 
 	int			ListSize, v, BestValue, LateMove;
 	ExtMove		HashMove;
 	bool		HashMoveFound	=	false;
+	int 		MaxMoveValue	=	0;
+	bool		CheckLMR		=	false;
 	HashMove.move	=	0;
-	
 	//-------------------Check if value is in Hash Table-----------------
 	HashEntry Memo;
 	if (TRANS_TABLE.FindEntry(ZobristHash, &Memo)){
@@ -77,7 +78,10 @@ pair<Move, int>	Search::AlphaBeta (BOARD A, int DEPTH, int Alpha, int Beta, int 
 				case LOWERBOUND	:	Beta	=	min(Beta, Memo.Evaluation);		break;
 			}
 			
-			if (Alpha >= Beta) return make_pair(A.PreviousMove, Memo.Evaluation);
+			if (Alpha >= Beta) {
+				//cout	<< "RETURNING FROM TABLE\n";
+				return make_pair(A.PreviousMove, Memo.Evaluation);
+			}
 		}
 	}
 	SearchNode++;
@@ -86,9 +90,8 @@ pair<Move, int>	Search::AlphaBeta (BOARD A, int DEPTH, int Alpha, int Beta, int 
 	
 	//Reaching Leaf node
 	if (DEPTH	==	0 || A.Pieces[wK + 6* (A.Side_to_move)] == 0) {
-		if ( A.Pieces[wK + 6* (A.Side_to_move)] == 0 )	{
-			return  make_pair(A.PreviousMove, -99999);
-		}
+		if ( A.Pieces[wK + 6* (A.Side_to_move)] == 0 )	
+			return  make_pair(A.PreviousMove, -19999);
 		int evaluation	=	QuiesceneSearch(A, Alpha, Beta);
 		return make_pair(A.PreviousMove, evaluation);
 	}
@@ -120,8 +123,7 @@ pair<Move, int>	Search::AlphaBeta (BOARD A, int DEPTH, int Alpha, int Beta, int 
 				break;
 			}	
 		}	
-			
-			
+		
 		for (int iterYo = 0; iterYo < ListSize; iterYo++){
 			int iMin = iterYo;
 			for (int j = iterYo+1; j < ListSize; j++)	if (MoveList[j].value > MoveList[iMin].value)	iMin	=	j;
@@ -129,24 +131,37 @@ pair<Move, int>	Search::AlphaBeta (BOARD A, int DEPTH, int Alpha, int Beta, int 
 				ExtMove	tmp			=	MoveList[iterYo];
 				MoveList[iterYo]	=	MoveList[iMin];
 				MoveList[iMin]		=	tmp;
+				if (iterYo	==	0)	{MaxMoveValue	=	MoveList[iterYo].value;}
 			};
 			
-			//Large unsorted tree
-			//Late Move Reduction;
-			if (ShallowDone && iterYo > ListSize/4 && !LMR){
-				if (DEPTH > 2 && DEPTH < FINAL_DEPT - 1 && MoveList[iterYo].value <= 50 && GameState != STATE::END) 
-					LateMove	=	2;
-					LMR	=	true;
-			}
 			
+			//Late Move Reduction;
+			if (!CheckLMR){
+				if (ShallowDone && (iterYo > 4 || iterYo > ListSize/4) && !LMR){
+					if (DEPTH > 2 && DEPTH <= FINAL_DEPT - 1) {
+						if (HashMoveFound || MaxMoveValue > 200){
+							//cout	<< "LMR\n";
+							LMR	=	true;
+							CheckLMR	=	true;
+							LateMove	=	2;
+						} 
+					}
+				}
+			}
 			if (MoveList[iterYo].move != HashMove.move){
 				BestValue	=	v;
 				int	Temp	=	-AlphaBeta(MOVE::MakeMove(A, MoveList[iterYo]), DEPTH - 1 - LateMove, -Beta, -Alpha, 
-										   FINAL_DEPT, UpdateKey(ZobristHash, MoveList[iterYo].move, A), LMR).second;
+											FINAL_DEPT, UpdateKey(ZobristHash, MoveList[iterYo].move, A), LMR).second;
 				v			=	max(v, Temp);
+				if ( BestValue != v &&  LMR && LateMove != 2){
+					v 		=	BestValue;
+					Temp	=	-AlphaBeta(MOVE::MakeMove(A, MoveList[iterYo]), DEPTH - 1, -Beta, -Alpha, 
+										   FINAL_DEPT, UpdateKey(ZobristHash, MoveList[iterYo].move, A), false).second;
+					v			=	max(v, Temp);
+				}
 				if (OutOfTime == 1)	return result;
 				if ( BestValue != v ) 	result	=	make_pair(MoveList[iterYo].move, v);
-				if ( Alpha < v) 		Alpha	=	v;
+				if ( Alpha < v) Alpha	=	v;
 				if ( Alpha >= Beta )  {	
 					if (MoveList[iterYo].getFlags() != 4 )	KillerMove[DEPTH][0] = MoveList[iterYo].move;
 					break;
@@ -168,7 +183,11 @@ pair<Move, int>	Search::AlphaBeta (BOARD A, int DEPTH, int Alpha, int Beta, int 
 	AA.Evaluation	=	v;
 	AA.HashValue	=	ZobristHash;
 	TRANS_TABLE.addEntry(ZobristHash, AA);
-	//cout	<< "RETURNING\n";
+	if (DEPTH > 1 &&false) {
+		cout	<< "RETURNING FROM DEPTH " << DEPTH << endl;
+		cout	<< "Best Value	=	" << result.second << endl;
+		cout	<< "BestMove	=	"; DECODE::DecodeMove(result.first);
+	}
     return result;
 }
 
@@ -185,19 +204,20 @@ pair<Move, int>	Search::SearchPosition (int MAX_DEPTH){
 	
 	OutOfTime	=	false;
 	GameState	=	STATE::BEGIN;
-	
 	//Checking gamestate based on material score
+	//Max Material (No King) = 8140 (both side);
 	for (int i = 0; i < 5; i++) 
 		Material_Point += (BitOp::PopsCount(Position.Pieces[i] | Position.Pieces[i + 6])) * VALUE[i];
-	if (Material_Point <= 7600) {
-		cout	<< "Middle Game\n";
+	if (Material_Point <= 6000) {
+		cout	<< "Increase search depth\n";
 		GameState	=	STATE::MID;
-		MAX_DEPTH += 0;
+		MAX_DEPTH += 2;
 	}
 	if (Material_Point <= 4000) {
 		cout	<< "EndGame Game\n";
 		GameState	=	STATE::END;
 	}
+	
 	//Reduce Depth based on killer capture	
 	ExtMove *Batch	=	FirstBatch;
 	int BSIZE	=	GENERATE::AllMove(Position, Batch, Position.Side_to_move);
@@ -210,33 +230,34 @@ pair<Move, int>	Search::SearchPosition (int MAX_DEPTH){
 			Batch[iMin]		=	tmp;
 		};
 	}
-	if (FirstBatch[0].getFlags() == 4 && Position.No_Ply > 10)
-		if ((FirstBatch[0].value - FirstBatch[1].value ) >= 250) {
-			cout	<< "Capure reduction\n";
-			MAX_DEPTH -= 0;
+	if (FirstBatch[0].getFlags() == 4 && Material_Point < 6500)
+		if ((FirstBatch[0].value - FirstBatch[1].value ) >= 350) {
+			cout	<< "Capture reduction\n";
+			MAX_DEPTH -= 2;
 		}
-	
+		
 	//Iterative deepening search loop
 	ShallowDone	=	false;
 	for (int inc =	4; inc >= 0; inc-=2){
 		SearchNode	=	0;
 		OPTIMAL_MOVE	=	AlphaBeta(Position, MAX_DEPTH - inc, Alpha, Beta, MAX_DEPTH - inc, BoardHashValue, false);
 		TRANS_TABLE.UpdateTable();
+		cout	 << "Move score = " << OPTIMAL_MOVE.second << endl;
 		if (inc == 2)	{
+			cout	<< "Search node = " << getSearchNode() << endl;
 			DECODE::DecodeMove(OPTIMAL_MOVE.first);
-			cout	 << "Move score = " << OPTIMAL_MOVE.second << endl;
 			int TimeLimit	=	time(&now) - Timer;
 			if (TimeLimit > 400) {
 				cout	<< "Exceed Time Limit\n"; 
 				MoveTime	=	TimeLimit;
 				break;
 			}
-			ShallowDone	=	true;
 		}
+		ShallowDone	=	true;
 		if (OutOfTime)	OPTIMAL_MOVE =	STORE_MOVE;
 		else STORE_MOVE = OPTIMAL_MOVE;
-		Alpha		=	STORE_MOVE.second - 100;
-		Beta		=	STORE_MOVE.second + 100;
+		//Alpha		=	STORE_MOVE.second - 250;
+		//Beta		=	STORE_MOVE.second + 250;
 	}
 	TRANS_TABLE.UpdateTable();
 	MoveTime	=	time(&now) - Timer;
