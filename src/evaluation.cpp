@@ -133,7 +133,6 @@ int	Evaluate	(BOARD A, int side){
 	if ((A.Castling_check &  0xE ) == 0xE ) 				CASTLING += 50 ;
 	if (A.No_Ply < 15) CASTLING	*=	2;
 	
-	
 	//BISHOP_PAIR
 	Bishop[0]	=	A.Pieces[wB];	Bishop[1]	=	A.Pieces[bB];
 	Knight[0]	=	A.Pieces[wN];	Knight[1]	=	A.Pieces[bN];

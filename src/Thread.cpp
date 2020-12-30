@@ -1,7 +1,8 @@
 #include "Thread.h"
 
 void	THREAD::InitBoard()				{
-	FEN_Op::READ_FEN("rnbqk2r/pp3ppp/4pn2/2pp4/1bPP4/2N1PN2/PP3PPP/R1BQKB1R w KQkq - 0 5 ", &INIT);
+	FEN_Op::READ_FEN(STANDARD, &INIT);
+	//FEN_Op::READ_FEN("rnbqk2r/pp3ppp/4pn2/2pp4/1bPP4/2N1PN2/PP3PPP/R1BQKB1R w KQkq - 0 5 ", &INIT);
 	BitOp::getBoardInfo(INIT);
 }
 

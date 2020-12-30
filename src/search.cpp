@@ -183,7 +183,7 @@ pair<Move, int>	Search::AlphaBeta (BOARD A, int DEPTH, int Alpha, int Beta, int 
 	AA.Evaluation	=	v;
 	AA.HashValue	=	ZobristHash;
 	TRANS_TABLE.addEntry(ZobristHash, AA);
-	if (DEPTH > 1 &&false) {
+	if (DEPTH > 1 && false) {
 		cout	<< "RETURNING FROM DEPTH " << DEPTH << endl;
 		cout	<< "Best Value	=	" << result.second << endl;
 		cout	<< "BestMove	=	"; DECODE::DecodeMove(result.first);
