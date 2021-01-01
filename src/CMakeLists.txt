@@ -1,24 +1,25 @@
 set(srcs
-    Main.cpp
-    BitBoard.h
-    BitBoard.cpp
+    main.cpp
+    bitboard.h
+    bitboard.cpp
+    board.h
+    board.cpp
     evaluation.cpp
     evaluation.h
-    MoveGen.cpp
-    MoveGen.h
+    movegen.cpp
+    movegen.h
     mt64.cpp
     mt64.h
-    OpenBook.h
-    OpenBook.cpp
+    openbook.h
+    openbook.cpp
     search.cpp
     search.h
-    Thread.cpp
-    Thread.h
-    Transposition.h
-    Transposition.cpp
+    game.cpp
+    game.h
+    transposition.h
     typedefs.h
-    ZobristHash.h
-    ZobristHash.cpp
+    zobristhash.h
+    zobristhash.cpp
 )
 add_executable( OTTO ${srcs})
-target_link_libraries( OTTO ${OpenCV_LIBS} )
+target_link_libraries( OTTO ${OpenCV_LIBS} pthread)

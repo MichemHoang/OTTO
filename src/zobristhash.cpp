@@ -1,4 +1,5 @@
-#include "ZobristHash.h"
+#include "zobristhash.h"
+#include "movegen.h"
 
 BitString	Random[13][64];
 BitString	CastKW;

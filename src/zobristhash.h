@@ -3,11 +3,10 @@
 
 #include "mt64.h"
 #include "typedefs.h"
-#include "BitBoard.h"
+#include "bitboard.h"
 #include <stdint.h>
 #include <stdlib.h>     /* srand, rand */
 #include <algorithm>    // std::sort
-#include "MoveGen.h"
 
 BitString	RandomGenerator();
 

@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include <algorithm>    // std::sort
-#include "BitBoard.h"
+#include "bitboard.h"
 #include "typedefs.h"
 #include "evaluation.h"
 #include "search.h"
@@ -14,10 +14,6 @@
  * 1		0000			quiet moves
  * 2		0001			double pawn push
  */
-
-inline bool operator<(const ExtMove& f, const ExtMove& s) {
-  return f.value < s.value;
-}
 
 namespace GENERATE{
 int AllMove		( struct BOARD A, ExtMove *MoveList, int Color );

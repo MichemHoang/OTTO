@@ -1,10 +1,8 @@
 #ifndef BITBOARD_H_
 #define BITBOARD_H_
 
-#include <stdint.h>
-
 #include "typedefs.h"
-
+#include <stdint.h>
 
 /*
  * BitBoard manipulation
@@ -55,14 +53,14 @@ extern BitBoard AttackRay[8][64];
 struct	BOARD{
 	BitBoard	Pieces[13];
 	BitBoard	CurrentBoard[2];
-	uint8_t		Sq[BRD_SQR];
+    uint8_t		Sq[64];
 	uint8_t		Castling_check;
 	/* 0000 0000 (Q+K)check * (B+W) is possible
 	 * 1000 0000 BQ check is not possible
 	 * 0100 0000 BK check is not possible
 	 * 0010 0000 Already castle 
 	 */
-	uint8_t		No_Ply;
+    uint8_t		No_Ply; //number of Ply
 	uint8_t		Side_to_move;
 	Move		PreviousMove;
 };
@@ -85,8 +83,8 @@ void 	Mask	();
 }
 
 namespace FEN_Op{
-void	READ_FEN	(std::string FEN_STRING, BOARD *A);
-std::string		toFEN		(BOARD A);
+void	READ_FEN(std::string FEN_STRING, BOARD *A);
+std::string		toFEN(BOARD A);
 }
 
 #endif

@@ -1,16 +1,18 @@
-#include "OpenBook.h"
+#include "openbook.h"
 
-HASH_TABLE<Opening, Key> OPEN_BOOK(100000);
+Book::Book(){
+    OpeningMoves = HASH_TABLE<Opening, Key>(100000);
+}
 
-void INIT_BOOK(){
-	ifstream BookText("Book.txt");
-	string Line;
-	string FEN_ANS;
-	string MoveStr;
+void Book::Init(){
+    std::ifstream BookText("Book.txt");
+    std::string Line;
+    std::string FEN_ANS;
+    std::string MoveStr;
 	Opening Entry;
 	Move   Deft;
 	int afk = 0;
-	while (getline(BookText, Line)){
+    while (std::getline(BookText, Line)){
 		BOARD A;
 		Key	Hashing;
 		if (Line[0]	!= '(' && Line[0] != '{' && Line[0] != '\0'){
@@ -38,14 +40,14 @@ void INIT_BOOK(){
 			Deft	=	stoi(MoveStr);
 			Entry.HashValue	=	Hashing;	
 			Entry.StoreMove	=	Deft;
-			OPEN_BOOK.addEntry(Hashing, Entry);
+            OpeningMoves.addEntry(Hashing, Entry);
 		}
 	}
-};
+}
 
-bool FindOpening	(Key Position, Move *PMove){
+bool Book::FindOpening	(Key Position, Move *PMove){
 	Opening Result;
-	if (OPEN_BOOK.FindEntry(Position, &Result)){
+    if (OpeningMoves.FindEntry(Position, &Result)){
 		*PMove	=	Result.PossibleMove[rand() % (Result.Total + 1)];
 		return true;
 	}

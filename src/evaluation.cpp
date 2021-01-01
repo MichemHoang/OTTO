@@ -273,5 +273,27 @@ int	SEEA(int To, BOARD A, int from){
 		depth--;
 	}
 	return gain[0];
-};
+}
+
+int		DynamicEval	(BOARD A, int Alpha, int Beta){
+    ExtMove CaptureList[20];
+    ExtMove *iter	=	CaptureList;
+    int evaluation	=	EVALUATION::Evaluate(A, A.Side_to_move);
+    if (evaluation 	>=	Beta) 	{	return Beta;	}
+    if (evaluation  >=	Alpha) 	{	Alpha 	=	evaluation;	}
+    int CAPTURE_LIST_SIZE	=	GENERATE::CaptureMove(A, iter, A.Side_to_move);
+    for (int i = 0; i < CAPTURE_LIST_SIZE; i++){
+        int iMin = i;
+        for (int j = i+1; j < CAPTURE_LIST_SIZE; j++)	if (CaptureList[j].value > CaptureList[iMin].value)	iMin	=	j;
+        if ( i != iMin )	{
+            ExtMove	tmp			=	CaptureList[i];
+            CaptureList[i]		=	CaptureList[iMin];
+            CaptureList[iMin]	=	tmp;
+        }
+        evaluation	=	-DynamicEval(MOVE::MakeMove(A, CaptureList[i]), -Beta, -Alpha);
+        if (evaluation 	>=	Beta) 	{	return Beta;	}
+        if (evaluation  >=	Alpha) 	{	Alpha 	=	evaluation;	}
+    }
+    return Alpha;
+}
 }

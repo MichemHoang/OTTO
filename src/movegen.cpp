@@ -1,10 +1,4 @@
-#include "MoveGen.h"
-/*
- * 
- * 
- */
- 
-extern int		RECUR_CALL;
+#include "movegen.h"
 
 namespace DECODE{
 void DecodeMove	(ExtMove *A){
@@ -16,24 +10,24 @@ void DecodeMove	(ExtMove *A){
 
 void DecodeMove	(Move A){
 	int	from	=	A	&	0x3F;
-	int to		=	(A	&	0xFC0) >> 6;
+    int to		=	(A	&	0xFC0) >> 6;
 	int flags	=	(A	>> 12) & 0xF;
 	std::cout	<< std::dec <<	from << "->" << to << "   Flags = " << flags << std::endl;
 }
 
-string DecodeMove	(ExtMove *A, int i){
+std::string DecodeMove	(ExtMove *A, int i){
 	int	from	=	A->move	&	0x3F;
 	int to		=	(A->move	&	0xFC0) >> 6;
 	int flags	=	(A->move	>> 12) & 0xF;
-	string answer	=	to_string(from) + "->" + to_string(to) + "   Flags = " + to_string(flags);
+    std::string answer	=	std::to_string(from) + "->" + std::to_string(to) + "   Flags = " + std::to_string (flags);
 	return answer;
 }
 
-string DecodeMove	(Move A, int i){
+std::string DecodeMove	(Move A, int i){
 	int	from	=	A	&	0x3F;
 	int to		=	(A	&	0xFC0) >> 6;
 	int flags	=	(A	>> 12) & 0xF;
-	string answer	=	to_string(from) + "->" + to_string(to) + "   Flags = " + to_string(flags);
+    std::string answer	=	std::to_string(from) + "->" + std::to_string(to) + "   Flags = " + std::to_string (flags);
 	return answer;
 }
 }//endnamespace
@@ -134,7 +128,7 @@ int AllMove( struct BOARD A, ExtMove *MoveList, int Color ){
 					MoveList++;
 					MOVELIST_TOTAL_ITEMS	+=	1;
 				}
-			} 
+            }
 			if (A.Sq[TO - 1]	==	wP){
 				if (((TO - 1)%8) != 7) {
 					MoveList->move	=	((TO - 1) | ((TO - 8) << 6) | ENPASSANT << 12);

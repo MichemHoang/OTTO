@@ -1,6 +1,4 @@
-#include "BitBoard.h"
-
-using namespace std;
+#include "bitboard.h"
 
 const int index64[64] = {
     0,  1, 48,  2, 57, 49, 28,  3,
@@ -24,7 +22,8 @@ const int indexR64[64] = {
    13, 18,  8, 12,  7,  6,  5, 63
 };
 
-string		Digit[10]	=	{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
+std::string Digit[10]	=	{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
+char 	 	acter [13]	=	{'P', 'N', 'B', 'R', 'Q', 'K', 'p', 'n', 'b', 'r', 'q', 'k', '.'};
 char		Castling_Condition[5]	=	{'K', 'Q', 'k', 'q', '-'};
 uint8_t		Castling_Value[5]		=	{CastlingKW, CastlingQW, CastlingKB, CastlingQB, 0};
 
@@ -103,7 +102,7 @@ int Shift_B[] = {
 
 //End of Copyright
 
-const BitBoard FileH = 0x0101010101010101ULL;			
+const BitBoard FileH = 0x0101010101010101ULL;
 const BitBoard FileG = FileH << 1;
 const BitBoard FileF = FileH << 2;
 const BitBoard FileE = FileH << 3;
@@ -129,7 +128,6 @@ BitBoard AttackRay[8][64];
 
 const uint64_t debruijn641  = 0x03f79d71b4cb0a89;
 const uint64_t debruijn64 	= 0x03f79d71b4cb0a89;
-
 //Thanks Debrujins
 
 const BitBoard DarkSquares 	= 0xAA55AA55AA55AA55ULL;
@@ -167,11 +165,11 @@ void PrintBitBoard	( BitBoard A ){
 	for (int i	=	0;	i < 64; i++){
 		temp	=	BIT1 >> i;
 		if ((temp & A) == temp )
-			cout	<< "1  ";
-		else cout	<< ".  ";
-		if ( (i+1) % 8 == 0 )	cout << endl;
+            std::cout	<< "1  ";
+        else std::cout	<< ".  ";
+        if ( (i+1) % 8 == 0 )	std::cout << std::endl;
 	}
-	cout	<< "-------------------------------\n";
+    std::cout	<< "-------------------------------\n";
 }
 
 int BitPop			( BitBoard &A ){
@@ -189,12 +187,10 @@ int BitPopR			( BitBoard &A ){
 }
 
 void	PrintSQ			( uint8_t SQ[]){
-	cout	<< "===========Print SQR==========\n\n";
 	for (int i = 0; i < 64; i++){
-		cout	<< Character[SQ[i]] << "  ";
-		if ((i+1) % 8 == 0 ) cout << endl;
-	}
-	cout	<< "\n==============END=============\n";
+        std::cout	<< Character[SQ[i]] << "  ";
+        if ((i+1) % 8 == 0 ) std::cout << std::endl;
+    }
 }
 
 int PopsCount	( BitBoard C ){
@@ -210,11 +206,12 @@ int PopsCount	( BitBoard C ){
 
 void	getBoardInfo	(BOARD A){
 	PrintSQ(A.Sq);
-	if (A.Side_to_move	==	WHITE)	cout	<< "WHITE TURN\n";
-	else 							cout	<< "BLACK TURN\n";
+    if (A.Side_to_move	==	WHITE)	std::cout	<< "WHITE TURN\n";
+    else 							std::cout	<< "BLACK TURN\n";
 }
 
 }//end of namespace
+//These could be done by parallization
 namespace INITIALIZE{
 void Mask	(){
 	BitBoard	o;
@@ -247,7 +244,7 @@ void Mask	(){
 	for (int i = 0; i < 64; i++){
 		temp	=	BIT1	>> i;
 		if ( i % 8 < 7 )			MASK::NMask[i] |=	( temp << 15 | temp >> 17 );
-		if ( i % 8 < 6 ) 			MASK::NMask[i] |=	( temp << 6  | temp >> 10 );
+        if ( i % 8 < 6 ) 			MASK::NMask[i] |=	( temp << 6  | temp >> 10 );
 		if ( i % 8 > 0 )			MASK::NMask[i] |= ( temp << 17 | temp >> 15 );
 		if ( i % 8 > 1 )			MASK::NMask[i] |= ( temp << 10 | temp >> 6  );
 	}
@@ -334,22 +331,21 @@ void MoveData(){
 }//endof namespace
 
 int		Char_To_int	(char Mx, int ii){
-	if (ii == 1)	for (int i = 0; i < 12; i++){if (Mx	==	acter[i]) return i;}
+    if (ii == 1)	for (int i = 0; i < 12; i++){if (Mx	==	acter[i]) return i;}
 	else 			for (int i = 0; i < 5; i++)	{if (Mx	==	Castling_Condition[i]) return i;}
 	return -1;
 }
 
 namespace FEN_Op{
 //Reading FEN_String from a string and convert into Board type
-void	READ_FEN(string FEN_STRING, BOARD *A) {
+void	READ_FEN(std::string FEN_STRING, BOARD *A) {
 	int BrdIter	=	0;
-	A	-> CurrentBoard[0]	=	0;
-	A	-> CurrentBoard[1]	=	0;
+    A->CurrentBoard[0]	=	0;
+    A->CurrentBoard[1]	=	0;
 	for (int j	=	0; j < 12; j++)	A->Pieces[j]	=	EMPTY_BRD;
-	for (int t 	=	0; t < 64; t++)	A->Sq[t]		=	emptySqr;
-	int Length	=	FEN_STRING.length();
+    for (int t 	=	0; t < 64; t++)	A->Sq[t]		=	emptySqr;
 	int iter = 0;
-	for (iter = 0; iter < Length; iter++){
+    for (iter = 0; iter < FEN_STRING.length(); iter++){
 		char Mon	=	FEN_STRING[iter];
 		if ((int)Mon < 58) {
 			if (Mon != '/') BrdIter	+=	(int)Mon - 48;}
@@ -382,8 +378,8 @@ void	READ_FEN(string FEN_STRING, BOARD *A) {
 }
 
 //Creating FEN_String from a Board datatype
-string	toFEN	(BOARD A){
-	string	FEN_STRING	=	"";
+std::string	toFEN	(BOARD A){
+    std::string	FEN_STRING	=	"";
 	int		counter;
 	for (int i = 0; i < 8; i++){
 		counter	=	0;
@@ -413,7 +409,7 @@ string	toFEN	(BOARD A){
 	FEN_STRING	+= std::to_string(a) + " ";
 	return FEN_STRING;
 }
-}//end if namespace
+}//end of namespace
 
 
 

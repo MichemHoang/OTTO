@@ -4,7 +4,7 @@
 #include <unordered_map>
 
 #include "typedefs.h"
-#include "BitBoard.h"
+#include "bitboard.h"
 
 
 /*3 kinds of Node_Type
