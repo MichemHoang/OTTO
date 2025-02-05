@@ -385,7 +385,7 @@ BitBoard Picker(int chooser, int pos, BitBoard OwnPieces, BitBoard EnemyPieces, 
 	return result;
 }
 
-BitBoard Pawn		(int pos, BitBoard OwnPieces, BitBoard EnemyPieces, int Color, BitBoard cap){
+BitBoard Pawn (int pos, BitBoard OwnPieces, BitBoard EnemyPieces, int Color, BitBoard cap){
 	BitBoard ValidMoves	=	0;
 	BitBoard position	=	BIT1 >> pos;
 	if (Color	==	WHITE){
@@ -402,13 +402,13 @@ BitBoard Pawn		(int pos, BitBoard OwnPieces, BitBoard EnemyPieces, int Color, Bi
 	return ValidMoves;
 }
 
-BitBoard Knight		(int pos, BitBoard OwnPieces, BitBoard EnemyPieces){
+BitBoard Knight	(int pos, BitBoard OwnPieces, BitBoard EnemyPieces){
 	BitBoard ValidMoves	=	0;
 	ValidMoves	=	MASK::NMask[pos] & ~OwnPieces;
 	return ValidMoves;
 }
 
-BitBoard Bishop		(int pos, BitBoard OwnPieces, BitBoard EnemyPieces){
+BitBoard Bishop	(int pos, BitBoard OwnPieces, BitBoard EnemyPieces){
 	BitBoard ValidMoves	=	0;
 	int magicIndex;
 	magicIndex	=	(int)( ((OwnPieces | EnemyPieces) & MASK::BMask[pos]) * magicNumberBishop[63 - pos] >> Shift_B[63 - pos]);
@@ -416,7 +416,7 @@ BitBoard Bishop		(int pos, BitBoard OwnPieces, BitBoard EnemyPieces){
 	return ValidMoves;
 }
 
-BitBoard Rook		(int pos, BitBoard OwnPieces, BitBoard EnemyPieces){
+BitBoard Rook (int pos, BitBoard OwnPieces, BitBoard EnemyPieces){
 	BitBoard ValidMoves	=	0;
 	int magicIndex;
 	magicIndex	=	(int)( ((OwnPieces | EnemyPieces) & MASK::RMask[pos]) * magicNumberRook[63 - pos] >> Shift_R[63 - pos]);
@@ -434,7 +434,7 @@ BitBoard Queen		(int pos, BitBoard OwnPieces, BitBoard EnemyPieces){
 	return ValidMoves;
 }
 
-BitBoard King		(int pos, BitBoard OwnPieces, BitBoard EnemyPieces){
+BitBoard King (int pos, BitBoard OwnPieces, BitBoard EnemyPieces){
 	BitBoard ValidMoves	=	0;
 	ValidMoves	=	MASK::KMask[pos] & ~OwnPieces;
 	return ValidMoves;

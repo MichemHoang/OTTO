@@ -10,8 +10,6 @@
  * Important BitBoard value
  */
  
-extern uint8_t	BitCount[65536];
-
 namespace MASK{
 extern BitBoard RMask[64];
 extern BitBoard NMask[64];
@@ -65,16 +63,17 @@ struct	BOARD{
 	Move		PreviousMove;
 };
 
+//Bit Operation
 namespace BitOp{
-bool 	isSubsetOf		( BitBoard a, BitBoard b);
+bool 	isSubsetOf		( BitBoard a, BitBoard b );
 int		BitPop			( BitBoard &A );
 int 	LSBit			( BitBoard A );
 int 	MSBit			( BitBoard A ); 
 int		BitPopR			( BitBoard &A );
 int 	PopsCount		( BitBoard C );
 void 	PrintBitBoard 	( BitBoard A );
-void	PrintSQ			( uint8_t SQ[]);
-void	getBoardInfo	(BOARD A);
+void	PrintSQ			( uint8_t SQ[] );
+void	getBoardInfo	( BOARD A );
 }
 
 namespace INITIALIZE{

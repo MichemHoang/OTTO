@@ -132,15 +132,16 @@ const uint64_t debruijn64 	= 0x03f79d71b4cb0a89;
 
 const BitBoard DarkSquares 	= 0xAA55AA55AA55AA55ULL;
 
-namespace BitOp{
+//Bit Operation
+namespace BitOp{ 
 bool isSubsetOf	( BitBoard a, BitBoard b) {return (a & b) == a;}
 
-int LSBit		( BitBoard bb ){
-	if ( bb == 0x00 ) return 64;
-	return 63 - index64[((bb & -bb) * debruijn64) >> 58];
+int LSBit ( BitBoard board ){
+	if ( board == 0x00 ) return 64;
+	return 63 - index64[((board & -board) * debruijn64) >> 58];
 }
 
-int	population	( BitBoard C ){
+int	population ( BitBoard C ){
 	int population	=	0;
 	BitBoard	A	=	C;
 	while ( A != 0 ){
@@ -150,7 +151,7 @@ int	population	( BitBoard C ){
 	return population;
 }
 
-int MSBit		(BitBoard bb) {
+int MSBit (BitBoard bb) {
    bb |= bb >> 1; 
    bb |= bb >> 2;
    bb |= bb >> 4;
@@ -160,10 +161,10 @@ int MSBit		(BitBoard bb) {
    return indexR64[(bb * debruijn641) >> 58];
 }
 
-void PrintBitBoard	( BitBoard A ){
-	BitBoard	temp;
-	for (int i	=	0;	i < 64; i++){
-		temp	=	BIT1 >> i;
+void PrintBitBoard ( BitBoard A ){
+	BitBoard temp;
+	for (int i = 0;	i < 64; i++){
+		temp = BIT1 >> i;
 		if ((temp & A) == temp )
             std::cout	<< "1  ";
         else std::cout	<< ".  ";
@@ -172,28 +173,30 @@ void PrintBitBoard	( BitBoard A ){
     std::cout	<< "-------------------------------\n";
 }
 
-int BitPop			( BitBoard &A ){
-	if ( A	==	0 ) return -1;
-	int pos		=	LSBit(A);
-	A	^=	(BIT1 >> pos);
+//pop the least significant bit
+int BitPop ( BitBoard &board ){
+	if ( board	==	0 ) return -1;
+	int pos	= LSBit(board);
+	board ^= (BIT1 >> pos);
 	return pos;
 }
 
-int BitPopR			( BitBoard &A ){
-	if ( A	==	0 ) return -1;
-	int pos		=	MSBit(A);
-	A	^=	(BIT1 >> ( 63 - pos ) );
+//pop the most significant bit
+int BitPopR	( BitBoard &board ){
+	if ( board	==	0 ) return -1;
+	int pos		=	MSBit(board);
+	board ^= (BIT1 >> ( 63 - pos ) );
 	return ( 63 - pos );
 }
 
-void	PrintSQ			( uint8_t SQ[]){
+void PrintSQ ( uint8_t SQ[]){
 	for (int i = 0; i < 64; i++){
         std::cout	<< Character[SQ[i]] << "  ";
         if ((i+1) % 8 == 0 ) std::cout << std::endl;
     }
 }
 
-int PopsCount	( BitBoard C ){
+int PopsCount (BitBoard C){
 	int Res	=	0;
 	uint16_t index;
 	for (int scalar	=	0; scalar < 4; scalar++){
@@ -204,23 +207,23 @@ int PopsCount	( BitBoard C ){
 	
 }
 
-void	getBoardInfo	(BOARD A){
+void getBoardInfo (BOARD A){
 	PrintSQ(A.Sq);
     if (A.Side_to_move	==	WHITE)	std::cout	<< "WHITE TURN\n";
     else 							std::cout	<< "BLACK TURN\n";
 }
 
 }//end of namespace
-//These could be done by parallization
+
 namespace INITIALIZE{
 void Mask	(){
-	BitBoard	o;
+	BitBoard o;
 	//Generate population count for 1 byte
 	for (int i	= 0; i< 65536; i++){
 		o	=	i;
 		BitCount[i]	=	BitOp::population(o);
 	}
-	BitBoard	temp;		
+	BitBoard temp;		
 	//GenerateAttackMovefor Pawn
 	for (int i	= 8; i< 56; i ++){
 		BitBoard	position	=	BIT1 >> i;
@@ -243,8 +246,8 @@ void Mask	(){
 	//Generate moves for Knight
 	for (int i = 0; i < 64; i++){
 		temp	=	BIT1	>> i;
-		if ( i % 8 < 7 )			MASK::NMask[i] |=	( temp << 15 | temp >> 17 );
-        if ( i % 8 < 6 ) 			MASK::NMask[i] |=	( temp << 6  | temp >> 10 );
+		if ( i % 8 < 7 )			MASK::NMask[i] |= ( temp << 15 | temp >> 17 );
+        if ( i % 8 < 6 ) 			MASK::NMask[i] |= ( temp << 6  | temp >> 10 );
 		if ( i % 8 > 0 )			MASK::NMask[i] |= ( temp << 17 | temp >> 15 );
 		if ( i % 8 > 1 )			MASK::NMask[i] |= ( temp << 10 | temp >> 6  );
 	}
@@ -320,19 +323,21 @@ void MoveData(){
 			}	
 			//Calulating magic number gor each index square
 			magicIndex		=	(int)( (Var * magicNumberBishop[63 - i]) >> Shift_B[63 - i] );
-			for (int j=i+9; j%8!=0 && j<=63; j+=9) 		{ validMoves |= (BIT1 >> j); if ((Var & (BIT1 >> j)) != 0) break; }
-			for (int j=i-9; j%8!=7 && j>=0 ; j-=9) 		{ validMoves |= (BIT1 >> j); if ((Var & (BIT1 >> j)) != 0) break; }
-			for (int j=i+7; j%8!=7 && j<=63; j+=7)		{ validMoves |= (BIT1 >> j); if ((Var & (BIT1 >> j)) != 0) break; }
-            for (int j=i-7; j%8!=0 && j>=0 ; j-=7) 		{ validMoves |= (BIT1 >> j); if ((Var & (BIT1 >> j)) != 0) break; }
+			for (int j=i+9; j%8!=0 && j<=63; j+=9) { validMoves |= (BIT1 >> j); if ((Var & (BIT1 >> j)) != 0) break; }
+			for (int j=i-9; j%8!=7 && j>=0 ; j-=9) { validMoves |= (BIT1 >> j); if ((Var & (BIT1 >> j)) != 0) break; }
+			for (int j=i+7; j%8!=7 && j<=63; j+=7) { validMoves |= (BIT1 >> j); if ((Var & (BIT1 >> j)) != 0) break; }
+            for (int j=i-7; j%8!=0 && j>=0 ; j-=7) { validMoves |= (BIT1 >> j); if ((Var & (BIT1 >> j)) != 0) break; }
 			BishopMoveDatabase[i][magicIndex]		=	validMoves;
 		}	
 	}
 }
 }//endof namespace
 
-int		Char_To_int	(char Mx, int ii){
-    if (ii == 1)	for (int i = 0; i < 12; i++){if (Mx	==	acter[i]) return i;}
-	else 			for (int i = 0; i < 5; i++)	{if (Mx	==	Castling_Condition[i]) return i;}
+int	Char_To_int	(char Mx, int ii){
+    if (ii == 1)	
+		for (int i = 0; i < 12; i++){if (Mx	==	acter[i]) return i;}
+	else 			
+		for (int i = 0; i < 5; i++)	{if (Mx	==	Castling_Condition[i]) return i;}
 	return -1;
 }
 
@@ -378,7 +383,7 @@ void	READ_FEN(std::string FEN_STRING, BOARD *A) {
 }
 
 //Creating FEN_String from a Board datatype
-std::string	toFEN	(BOARD A){
+std::string	toFEN (BOARD A){
     std::string	FEN_STRING	=	"";
 	int		counter;
 	for (int i = 0; i < 8; i++){

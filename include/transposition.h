@@ -47,25 +47,25 @@ class HASH_TABLE{
 
 ///Generic temlate methods implementation
 template <typename T, typename HKey> 
-HASH_TABLE<T, HKey>::HASH_TABLE 	()		{	Size	=	4000;	};
+HASH_TABLE<T, HKey>::HASH_TABLE() {	Size	=	4000;	};
 
 template <typename T, typename HKey> 
-HASH_TABLE<T, HKey>::HASH_TABLE		(int A)	{	Size	=	A; }
+HASH_TABLE<T, HKey>::HASH_TABLE(int A) { Size = A; }
 
 template <typename T, typename HKey> 
-void		HASH_TABLE<T, HKey>::setSize		( int AS )			{	Size	=	AS;	};
+void HASH_TABLE<T, HKey>::setSize (int AS) {	Size = AS;	};
 
 template <typename T, typename HKey> 
-int			HASH_TABLE<T, HKey>::getSize		(	)			{	return HashTable.size();	};
+int	HASH_TABLE<T, HKey>::getSize() {return HashTable.size(); };
 
 template <typename T, typename HKey> 
-void	HASH_TABLE<T, HKey>::addEntry( HKey ZobristHash, T newEntry ) {}
+void HASH_TABLE<T, HKey>::addEntry( HKey ZobristHash, T newEntry ) {}
 
 template <typename T, typename HKey> 
-int		HASH_TABLE<T, HKey>::HashFunction( HKey Hashkey)	{ return Hashkey % Size;	};
+int	HASH_TABLE<T, HKey>::HashFunction( HKey Hashkey) { return Hashkey % Size;	};
 
 template <typename T, typename HKey> 
-void	HASH_TABLE<T, HKey>::PrintDatabase(){	}
+void HASH_TABLE<T, HKey>::PrintDatabase(){	}
 
 ///*
 

@@ -36,14 +36,14 @@ typedef uint64_t HashKey;
  * 11-16 ( Move Type )
  */ 
 
-const int 		MAX_MOVES = 120;
-const int 		MAX_PLY   = 128;
-const uint64_t 	UNIVERSE  = 0xffffffffffffffff;
-const uint64_t 	BIT1	  = 0x8000000000000000;
-const uint64_t 	EMPTY_BRD = 0x0000000000000000;
-const int		MAX_VALUE =	65536;
-const int 		MIN_VALUE =	-65536;
-const std::string	STANDARD	=	"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0 ";
+const int 			MAX_MOVES = 120;
+const int 			MAX_PLY   = 128;
+const uint64_t 		UNIVERSE  = 0xffffffffffffffff;
+const uint64_t 		BIT1	  = 0x8000000000000000;
+const uint64_t 		EMPTY_BRD = 0x0000000000000000;
+const int			MAX_VALUE =	65536;
+const int 			MIN_VALUE =	-65536;
+const std::string	STANDARD  =	"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0 ";
 
 enum Signal {
 	TIMEOUT			=	-2,
@@ -78,11 +78,12 @@ namespace BEGIN{
 const int	VALUE[13]	=	{BEGIN::P_VALUE, BEGIN::N_VALUE, BEGIN::B_VALUE, BEGIN::R_VALUE, BEGIN::Q_VALUE, BEGIN::K_VALUE, 
 							 BEGIN::P_VALUE, BEGIN::N_VALUE, BEGIN::B_VALUE, BEGIN::R_VALUE, BEGIN::Q_VALUE, BEGIN::K_VALUE, 0};
 
+//Move with value and information
 struct ExtMove {
 	Move move;
 	int value;
 
-	void operator=(ExtMove m) { move = m.move; value	=	m.value;	}
+	void operator=(ExtMove m) { move = m.move; value = m.value;	}
 	bool operator>(ExtMove m) { return  value > m.value; }
 
     uint16_t getMove() const { return move; }

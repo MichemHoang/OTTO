@@ -275,7 +275,7 @@ int	SEEA(int To, BOARD A, int from){
 	return gain[0];
 }
 
-int		DynamicEval	(BOARD A, int Alpha, int Beta){
+int	DynamicEval	(BOARD A, int Alpha, int Beta){
     ExtMove CaptureList[20];
     ExtMove *iter	=	CaptureList;
     int evaluation	=	EVALUATION::Evaluate(A, A.Side_to_move);

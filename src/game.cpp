@@ -1,11 +1,11 @@
 #include "game.h"
 
-void	Game::InitBoard()				{
+void Game::InitBoard()				{
     FEN_Op::READ_FEN(STANDARD, &INIT);
 	BitOp::getBoardInfo(INIT);
 }
 
-void 	Game::Init_engine(){
+void Game::Init_engine(){
     std::cout	<< sizeof(HashEntry) << std::endl;
 	INITIALIZE::Mask();
 	INITIALIZE::MoveData();
@@ -16,7 +16,7 @@ void 	Game::Init_engine(){
 	UNLOCK	=	false;
 }
 
-void 	Game::Display_Move(BOARD A, int MType){
+void Game::Display_Move(BOARD A, int MType){
 	ExtMove ok[MAX_MOVES];
 	int size;
 	switch (MType){
@@ -37,7 +37,7 @@ void 	Game::Display_Move(BOARD A, int MType){
 	}
 }
 
-void 	Game::Timer(){
+void Game::Timer(){
 	bool	Stop = false;
 	int SearchTime;
 	int startTime;
@@ -70,7 +70,7 @@ void 	Game::Timer(){
 	}
 }
 
-void	Game::AIMove(Search *A, int *TotalTime, int level, std::pair<Move, int> *ANS){
+void Game::AIMove(Search *A, int *TotalTime, int level, std::pair<Move, int> *ANS){
 	*ANS	=	A->SearchPosition(level);
     std::cout	<< "Time = " << A->getTime() << std::endl;
 	*TotalTime	+=	A->getTime();
@@ -84,7 +84,7 @@ void	Game::AIMove(Search *A, int *TotalTime, int level, std::pair<Move, int> *AN
     std::cout	<< "SearchNode = " << GAME.getSearchNode() << std::endl;
 }
 
-void 	Game::StartGame(void * GameArg){
+void Game::StartGame(void * GameArg){
 	int		level, AIvsAI, MaxMove, Side;
 	int		*PTR;
 	int		TotalTime		= 0;
@@ -155,7 +155,7 @@ void 	Game::StartGame(void * GameArg){
     std::cout	<< "Endgame (Press sth)\n";
 }
 
-void	Game::SignalHandler(){
+void Game::SignalHandler(){
 	int UserInput;
 	while (!UNLOCK && false){
         std::cin >> UserInput;
