@@ -2,7 +2,6 @@
 #define MOVEGEN_H_
 
 #include <stdint.h>
-#include <algorithm>    // std::sort
 #include "bitboard.h"
 #include "typedefs.h"
 #include "evaluation.h"
@@ -29,17 +28,14 @@ BitBoard King	(int position, BitBoard OwnPieces, BitBoard EnemyPieces);
 }
 
 namespace MOVE{
-BOARD	MakeMove(BOARD inital, ExtMove to);
-BOARD	MakeMove(BOARD initial, Move transformer);
-BOARD	UndoMove(BOARD &inital, ExtMove to);
+BOARD MakeMove(BOARD inital, ExtMove to);
+BOARD MakeMove(BOARD initial, Move transformer);
+BOARD UndoMove(BOARD &inital, ExtMove to);
 }
 
-void MoveOrdering	(ExtMove *MoveList);
-
+void MoveOrdering (ExtMove *MoveList);
 
 namespace DECODE{ 
-std::string DecodeMove	(ExtMove *A, int i);
-std::string DecodeMove	(Move A, int i);
 void DecodeMove	(ExtMove *A);
 void DecodeMove	(Move A);
 }

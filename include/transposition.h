@@ -14,10 +14,12 @@
  * Flag is used to recognize old node
  */
 
+
 #define	EXACT 		1
 #define LOWERBOUND 	2
 #define UPPERBOUND	3
- 
+
+
 struct HashEntry{
 	bool		Flag;			//Old node
 	uint64_t	HashValue;		

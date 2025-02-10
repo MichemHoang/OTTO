@@ -15,21 +15,21 @@
  */
 
 class Game{
-	private:
-		BOARD	INIT;
-		time_t 	now;
-        int 	Sig;
-		bool	UNLOCK;
-		Search	GAME;
-        Book    book;
-	public:
-        void	AIMove(Search *A, int *TotalTime, int level, std::pair<Move, int> *ANS);
-		void	InitBoard()	;
-		void 	Init_engine();
-		void 	Display_Move(BOARD A, int MType);
-		void 	StartGame(void *threadArg);
-		void 	Timer();
-		void	SignalHandler();
+private:
+	BOARD	INIT;
+	time_t 	now;
+    int 	Sig;
+	bool	UNLOCK;
+	Search	GAME;
+    Book    book;
+public:
+    void	AIMove(Search *A, int *TotalTime, int level, std::pair<Move, int> *ANS);
+	void	InitBoard()	;
+	void 	Init_engine();
+	void 	Display_Move(BOARD A, int MType);
+	void 	StartGame(void *threadArg);
+	void 	Timer();
+	void	SignalHandler();
 };
 
 #endif 

@@ -1,47 +1,37 @@
 #include "movegen.h"
+#include <algorithm>    // std::sort
 
 namespace DECODE{
 void DecodeMove	(ExtMove *A){
-	int	from	=	A->move	&	0x3F;
-	int to		=	(A->move	&	0xFC0) >> 6;
+	std::string	from	=	squares[A->move	&	0x3F];
+	std::string to		=	squares[(A->move	&	0xFC0) >> 6];
 	int flags	=	(A->move	>> 12) & 0xF;
 	std::cout	<< std::dec <<	from << "->" << to << "   Flags = " << flags << "   Value = " << A->value << std::endl;
 }
 
 void DecodeMove	(Move A){
-	int	from	=	A	&	0x3F;
-    int to		=	(A	&	0xFC0) >> 6;
+	std::string	from	=	squares[A	&	0x3F];
+	std::string to		=	squares[(A	&	0xFC0) >> 6];
 	int flags	=	(A	>> 12) & 0xF;
 	std::cout	<< std::dec <<	from << "->" << to << "   Flags = " << flags << std::endl;
 }
 
-std::string DecodeMove	(ExtMove *A, int i){
-	int	from	=	A->move	&	0x3F;
-	int to		=	(A->move	&	0xFC0) >> 6;
-	int flags	=	(A->move	>> 12) & 0xF;
-    std::string answer	=	std::to_string(from) + "->" + std::to_string(to) + "   Flags = " + std::to_string (flags);
-	return answer;
-}
-
-std::string DecodeMove	(Move A, int i){
-	int	from	=	A	&	0x3F;
-	int to		=	(A	&	0xFC0) >> 6;
-	int flags	=	(A	>> 12) & 0xF;
-    std::string answer	=	std::to_string(from) + "->" + std::to_string(to) + "   Flags = " + std::to_string (flags);
-	return answer;
-}
 }//endnamespace
 
+std::vector<ExtMove> MoveEncoding(){
+
+}
+//this need fixing
 ExtMove *MoveEncoding (int isPawn, int Sq, BitBoard Target, ExtMove *MoveList, BitBoard Enemy, BOARD C, int *Z){
 	uint16_t	from;
 	uint16_t	to;
 	uint16_t	flags;
 	from	=	Sq;
-	MoveType	FLG;
+	MoveType	FLG; //Flag
 	if (isPawn%6	!=	0){
 		while (Target != 0){
-			to				=	BitOp::BitPop(Target);
-			if ((BIT1 >> to & Enemy) != 0 )	{	FLG		=	CAPTURE;		
+			to = BitOp::BitPop(Target);
+			if ((BIT1 >> to & Enemy) != 0 )	{	FLG =	CAPTURE;		
 				int a	=	EVALUATION::SEEA(to, C, from);
 				if (a > -90) a += 200; else a -= 200;
 				MoveList->value	=	EVALUATION::PieceSquareValue(isPawn, from, to) + a;	
@@ -195,7 +185,7 @@ int AllMove( struct BOARD A, ExtMove *MoveList, int Color ){
 			else if (A.Sq[5]	==	emptySqr&& A.Sq[6]	==	emptySqr){
 				MoveList->move	=	(4 | 6 << 6 | KING_CASTLE << 12);
 				Moves[bK]		=	BIT1 >> 6;
-				MoveList->value			=	250;
+				MoveList->value	=	250;
 				MoveList++;
 				MOVELIST_TOTAL_ITEMS	+=	1;
 			}
@@ -372,15 +362,15 @@ int QuietMove( struct BOARD A, ExtMove *MoveList, int Color){
 	return MOVELIST_TOTAL_ITEMS;
 }
 
-BitBoard Picker(int chooser, int pos, BitBoard OwnPieces, BitBoard EnemyPieces, int Color, BitBoard capture){
+BitBoard Picker(int chooser, int position, BitBoard OwnPieces, BitBoard EnemyPieces, int Color, BitBoard capture){
 	BitBoard result;
 	switch (chooser){
-		case wP:	result	=	GENERATE::Pawn	( pos,  OwnPieces,  EnemyPieces,  Color, capture);	break;
-		case wB:	result	=	GENERATE::Bishop( pos,  OwnPieces,  EnemyPieces);					break;
-		case wR:	result	=	GENERATE::Rook	( pos,  OwnPieces,  EnemyPieces);					break;
-		case wQ:	result	=	GENERATE::Queen	( pos,  OwnPieces,  EnemyPieces);					break;
-		case wN:	result	=	GENERATE::Knight( pos,  OwnPieces,  EnemyPieces);					break;
-		case wK:	result	=	GENERATE::King	( pos,  OwnPieces,  EnemyPieces);					break;
+		case wP:	result	=	GENERATE::Pawn	( position,  OwnPieces,  EnemyPieces,  Color, capture);	break;
+		case wB:	result	=	GENERATE::Bishop( position,  OwnPieces,  EnemyPieces);					break;
+		case wR:	result	=	GENERATE::Rook	( position,  OwnPieces,  EnemyPieces);					break;
+		case wQ:	result	=	GENERATE::Queen	( position,  OwnPieces,  EnemyPieces);					break;
+		case wN:	result	=	GENERATE::Knight( position,  OwnPieces,  EnemyPieces);					break;
+		case wK:	result	=	GENERATE::King	( position,  OwnPieces,  EnemyPieces);					break;
 	}
 	return result;
 }

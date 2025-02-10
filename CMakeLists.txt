@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.5)
 project(OTTO)
 
+set(CMAKE_CXX_STANDARD 14)
+
 set(srcs
     src/bitboard.cpp
     src/board.cpp

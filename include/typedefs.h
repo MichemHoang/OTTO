@@ -30,17 +30,17 @@ typedef uint64_t BitString;
 typedef uint64_t HashKey;
 
 /*
- * 16 bit is needed to encode a move
- * 0-5 	 from
- * 6-10	 to
+ * 16 bit is needed to encode a move (2^6 = 64)
+ * Bit 0-5 	 from
+ * Bit 6-10	 to
  * 11-16 ( Move Type )
  */ 
 
-const int 			MAX_MOVES = 120;
-const int 			MAX_PLY   = 128;
-const uint64_t 		UNIVERSE  = 0xffffffffffffffff;
-const uint64_t 		BIT1	  = 0x8000000000000000;
-const uint64_t 		EMPTY_BRD = 0x0000000000000000;
+const int 			MAX_MOVES = 120;	//Total number of moves (1 move = 2 plys)
+const int 			MAX_PLY   = 128;    //Total number of ply (or half move)
+const BitBoard 		UNIVERSE  = 0xffffffffffffffff;
+const BitBoard 		BIT1	  = 0x8000000000000000;
+const BitBoard 		EMPTY_BRD = 0x0000000000000000;
 const int			MAX_VALUE =	65536;
 const int 			MIN_VALUE =	-65536;
 const std::string	STANDARD  =	"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0 ";
@@ -55,10 +55,10 @@ enum Signal {
 
 enum MoveType {
 	QUIET_MOVES		=	0,	DOUBLE_PUSH		=	1,	KING_CASTLE		=	2,
-	QUEEN_CASTLE	=	3,	CAPTURE			=	4,	K_PROMO			=	8,
-	B_PROMO			=	9,	R_PROMO			=	10,	Q_PROMO			=	11,
-	K_PROMO_CAP		=	12,	B_PROMO_CAP		=	13,	R_PROMO_CAP		=	14,
-	Q_PROMO_CAP		=	15, ENPASSANT		=	5
+	QUEEN_CASTLE	=	3,	CAPTURE			=	4,	ENPASSANT		=	5,
+	K_PROMO			=	8,  B_PROMO			=	9,	R_PROMO			=	10,	
+	Q_PROMO			=	11, K_PROMO_CAP		=	12,	B_PROMO_CAP		=	13,	
+	R_PROMO_CAP		=	14, Q_PROMO_CAP		=	15, 
 };
 
 enum Castling_right{
@@ -75,21 +75,23 @@ namespace BEGIN{
 	const int R_VALUE	=	510;
 }
 
-const int	VALUE[13]	=	{BEGIN::P_VALUE, BEGIN::N_VALUE, BEGIN::B_VALUE, BEGIN::R_VALUE, BEGIN::Q_VALUE, BEGIN::K_VALUE, 
-							 BEGIN::P_VALUE, BEGIN::N_VALUE, BEGIN::B_VALUE, BEGIN::R_VALUE, BEGIN::Q_VALUE, BEGIN::K_VALUE, 0};
+//This seems useless? 
+const int VALUE[13]	= {BEGIN::P_VALUE, BEGIN::N_VALUE, BEGIN::B_VALUE, BEGIN::R_VALUE, BEGIN::Q_VALUE, BEGIN::K_VALUE, 
+					   BEGIN::P_VALUE, BEGIN::N_VALUE, BEGIN::B_VALUE, BEGIN::R_VALUE, BEGIN::Q_VALUE, BEGIN::K_VALUE, 0};
 
-//Move with value and information
+//Move with value and its functions
 struct ExtMove {
 	Move move;
 	int value;
 
 	void operator=(ExtMove m) { move = m.move; value = m.value;	}
 	bool operator>(ExtMove m) { return  value > m.value; }
+	bool operator<(ExtMove m) { return  value < m.value; }
 
-    uint16_t getMove() const { return move; }
-	uint8_t getTo() const {return move >> 6 & 0x3f;}
-	uint8_t getFrom() const {return (move) & 0x3f;}
-    uint8_t getFlags() const {return (move >> 12) & 0x0f;}
+    Move getMove() const { return move; }
+	uint8_t getTo() const {return move >> 6 & 0x3f;}  //value of bit 6 to 10 
+	uint8_t getFrom() const {return (move) & 0x3f;}  // value of first 6 bit
+    uint8_t getFlags() const {return (move >> 12) & 0x0f;} // value of bit 12 - 15
 };
 
 #endif 

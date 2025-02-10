@@ -173,7 +173,7 @@ void PrintBitBoard ( BitBoard A ){
     std::cout	<< "-------------------------------\n";
 }
 
-//pop the least significant bit
+//pop the least significant bit, return position of the Lsb
 int BitPop ( BitBoard &board ){
 	if ( board	==	0 ) return -1;
 	int pos	= LSBit(board);
@@ -181,10 +181,10 @@ int BitPop ( BitBoard &board ){
 	return pos;
 }
 
-//pop the most significant bit
+//pop the most significant bit, return position of the Msb
 int BitPopR	( BitBoard &board ){
 	if ( board	==	0 ) return -1;
-	int pos		=	MSBit(board);
+	int pos	= MSBit(board);
 	board ^= (BIT1 >> ( 63 - pos ) );
 	return ( 63 - pos );
 }
