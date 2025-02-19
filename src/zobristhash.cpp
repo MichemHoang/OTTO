@@ -10,17 +10,17 @@ BitString	BTurn;
 
 unsigned long long init[4]={0x12345ULL, 0x23456ULL, 0x34567ULL, 0x45678ULL}, length=4;
 
-BitString Xoring	(BitString String, BitString Xor){
+BitString Xoring (BitString String, BitString Xor){
 	return String ^ Xor;
 }
  
-BitString	RandomGenerator(){
+BitString RandomGenerator(){
 	init_by_array64(init, length);
 	BitString	a	=	genrand64_int64();
 	return a;
 }
 
-BitString	UpdateKey(BitString OldKey, Move A, BOARD OldBoard){
+BitString UpdateKey(BitString OldKey, Move A, BOARD OldBoard){
 	uint8_t	from	=	A & 0x3f;
 	uint8_t to		=	A >> 6 & 0x3f;
 	uint8_t flag	=	A >> 12 & 0x0f;
@@ -55,7 +55,7 @@ BitString	UpdateKey(BitString OldKey, Move A, BOARD OldBoard){
 	return OldKey;
 }
 
-BitString	GetKey(BOARD A){
+BitString GetKey(BOARD A){
 	uint64_t	ZKey	=	0;
 	for (int i	=	0; i < 64; i++)
 		if (A.Sq[i]	!= 12)	ZKey	^=	Random[A.Sq[i]][i];
@@ -67,7 +67,7 @@ BitString	GetKey(BOARD A){
 	return ZKey;
 }
 
-void		InitZoBrist(bool On){
+void InitZoBrist(bool On){
 	std::cout	<<	"INIT ZOBRIST RANDOM MATRIX\n";
 	if (On) init_by_array64(init, length);
 	for (int i = 0; i < 12; i++)
