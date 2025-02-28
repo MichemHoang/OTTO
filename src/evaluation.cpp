@@ -294,26 +294,25 @@ int	Evaluate (BOARD_C A, int side){
 }
 
  //Least valuable attacker
+ //-1 = there is no attacker on the square
 int LVA (int att_Sqr, BOARD_C A, int side){
-	int	QPosition	=	-1;
+	int	QPosition = -1;
 	BitBoard SlidingPiece;
 	BitBoard B;
-	int position	=	-1;
+	int position = -1;
 	//Check for pawn attack
 	B	=	MASK::PMask[side^1][att_Sqr]	&	A.Pieces[wP + 6*(side)];
 	while (B!=0){
 		position	=	BitOp::BitPop(B);
 		return position;
 	}
-	
 	//Check for Knight attack
 	B	=	MASK::NMask[att_Sqr]	&	A.Pieces[wN	+	6 * side];
 	while (B!=0){
 		position	=	BitOp::BitPop(B);
 		return position;
 	}
-	
-	SlidingPiece	=	GENERATE::Queen(att_Sqr, A.CurrentBoard[side ^ 1] | BIT1 >> att_Sqr, A.CurrentBoard[side]);
+	SlidingPiece = GENERATE::Queen(att_Sqr, A.CurrentBoard[side ^ 1] | BIT1 >> att_Sqr, A.CurrentBoard[side]);
 	//Check for rook/Bishop/Queen attack
 	for (int i = 0; i < 8; i++){
 		B	=	AttackRay[RayLookUp[i]][att_Sqr] & SlidingPiece ;
@@ -460,6 +459,29 @@ int	DynamicEval	(BOARD A, int Alpha, int Beta){
             CaptureList[iMin]	=	tmp;
         }
         evaluation	=	-DynamicEval(MOVE::MakeMove(A, CaptureList[i]), -Beta, -Alpha);
+        if (evaluation 	>=	Beta) 	{	return Beta;	}
+        if (evaluation  >=	Alpha) 	{	Alpha 	=	evaluation;	}
+    }
+	free (iter);
+    return Alpha;
+}
+
+
+int	DynamicEval	(BOARD_C A, int Alpha, int Beta){
+	std::vector<ExtMove>  CaptureList;
+    int evaluation	=	EVALUATION::Evaluate(A, A.Side_to_move);
+    if (evaluation 	>=	Beta) 	{	return Beta;	}
+    if (evaluation  >=	Alpha) 	{	Alpha 	=	evaluation;	}
+    CaptureList = GENERATE::CaptureMoves(A, A.Side_to_move);
+    for (int i = 0; i < CaptureList.size(); i++){
+        int iMin = i;
+        for (int j = i+1; j < CaptureList.size(); j++)	if (CaptureList[j].value > CaptureList[iMin].value)	iMin	=	j;
+        if ( i != iMin )	{
+            ExtMove	tmp			=	CaptureList[i];
+            CaptureList[i]		=	CaptureList[iMin];
+            CaptureList[iMin]	=	tmp;
+        }
+        evaluation	=	-DynamicEval(A.makeMove(CaptureList[i]), -Beta, -Alpha);
         if (evaluation 	>=	Beta) 	{	return Beta;	}
         if (evaluation  >=	Alpha) 	{	Alpha 	=	evaluation;	}
     }

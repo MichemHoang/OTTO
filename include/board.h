@@ -19,11 +19,14 @@ public:
     uint8_t	Side_to_move;
     Move	PreviousMove;
     
+    BOARD_C ();
+
     std::string	toFENString();  //convert to FENString
     void printBoard();
     BOARD_C makeMove (ExtMove to);
     BOARD_C makeMove (Move to);
     BOARD_C undoMove (ExtMove undo);
+    void readFENString(std::string fenString);
     void printAllMove();
 };
 

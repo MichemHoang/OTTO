@@ -343,7 +343,7 @@ int	Char_To_int	(char Mx, int ii){
 
 namespace FEN_Op{
 //Reading FEN_String from a string and convert into Board type
-void	READ_FEN(std::string FEN_STRING, BOARD *A) {
+void READ_FEN(std::string FEN_STRING, BOARD *A) {
 	int BrdIter	=	0;
     A->CurrentBoard[0]	=	0;
     A->CurrentBoard[1]	=	0;

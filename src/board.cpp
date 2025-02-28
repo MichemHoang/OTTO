@@ -4,6 +4,57 @@ char 	 	Pieces [13]	=	{'P', 'N', 'B', 'R', 'Q', 'K', 'p', 'n', 'b', 'r', 'q', 'k
 char		Castling[5]	=	{'K', 'Q', 'k', 'q', '-'};
 uint8_t		Castling_Val[5]		=	{CastlingKW, CastlingQW, CastlingKB, CastlingQB, 0};
 
+BOARD_C::BOARD_C (){
+	readFENString(STANDARD);
+}
+
+int	CharToInt (char Mx, int ii){
+    if (ii == 1)	
+		for (int i = 0; i < 12; i++){if (Mx	==	Pieces[i]) return i;}
+	else 			
+		for (int i = 0; i < 5; i++)	{if (Mx	==	Castling[i]) return i;}
+	return -1;
+}
+
+void BOARD_C::readFENString(std::string fenString){
+	int BrdIter	=	0;
+    CurrentBoard[0]	= 0;
+    CurrentBoard[1]	= 0;
+	for (int j	=	0; j < 12; j++)	Pieces[j]	=	EMPTY_BRD;
+    for (int t 	=	0; t < 64; t++)	Sq[t]		=	emptySqr;
+	int iter = 0;
+    for (iter = 0; iter < fenString.length(); iter++){
+		char Mon	=	fenString[iter];
+		if ((int)Mon < 58) {
+			if (Mon != '/') BrdIter	+=	(int)Mon - 48;}
+		else {
+			int Pcs			=	CharToInt(Mon, 1);
+			Sq[BrdIter]	= 	Pcs;
+			Pieces[Pcs]	|=	BIT1 >> BrdIter;
+			if (Pcs < 6) 	CurrentBoard[0]	|=	(BIT1 >> BrdIter);	
+			else  			CurrentBoard[1]	|=	(BIT1 >> BrdIter);	
+			BrdIter++;		
+		}
+		if (BrdIter > 63) break;
+	}
+	iter+=2;
+	fenString[iter] == 'w'? Side_to_move = WHITE: Side_to_move = BLACK;
+	iter+=2;
+	Castling_check	=	0xEE;
+	while (fenString[iter]!= ' '){
+		int Px	=	CharToInt(fenString[iter], 15);
+		Castling_check	&=	~Castling_Val[Px];
+		iter++;
+	}
+	iter+=5;
+	uint8_t	Moves	=	((int)fenString[iter] - 48);
+	if (fenString[++iter]!= ' ') {
+		Moves	*=	10;
+		Moves	+=	(int)fenString[iter] - 48;
+	}
+	No_Ply	=	Moves*2;
+}
+
 std::string BOARD_C::toFENString(){
     std::string	FEN_STRING	= "";
 	int	counter;
@@ -33,6 +84,7 @@ std::string BOARD_C::toFENString(){
 	FEN_STRING	+= std::to_string(HalfMoveClock) + " ";
 	a	=	(int)No_Ply/2;
 	FEN_STRING	+= std::to_string(a) + " ";
+	std::cout << FEN_STRING << "\n";
 	return FEN_STRING;
 }
 
@@ -98,5 +150,4 @@ BOARD_C BOARD_C::makeMove (Move transformer){
 }
 
 BOARD_C BOARD_C::undoMove (ExtMove to){
-
 }

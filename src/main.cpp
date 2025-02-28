@@ -2,6 +2,7 @@
 #include <iostream>
 #include <thread>
 #include "game.h"
+#include "board.h"
 
 int main(){
     Game A;

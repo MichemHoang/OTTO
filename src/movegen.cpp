@@ -436,6 +436,7 @@ std::vector<ExtMove> AllMoves(BOARD_C board, int side){
 	BitBoard enemyPieces, ownPieces;
 	Castling_right	castK, castQ;
 	for (int i = 0; i < 6; i++) Moves[i] = 0;
+	std::cout << "so far so good\n";
 	if (side == WHITE){
 		for (int i = 0; i < 6; i++)	Pieces[i]	=	board.Pieces[i];
 		ownPieces	=	board.CurrentBoard[WHITE];
@@ -461,6 +462,7 @@ std::vector<ExtMove> AllMoves(BOARD_C board, int side){
 				}
 			}
 		}
+		std::cout << "so far so good\n";
 		if ((board.Castling_check &	castK) != castK) {
 			if ((EVALUATION::LVA(60, board, BLACK)	!=	-1) || 
 				(EVALUATION::LVA(61, board, BLACK)	!=	-1) ||
@@ -481,10 +483,11 @@ std::vector<ExtMove> AllMoves(BOARD_C board, int side){
 				ExtMove newMove;
 				newMove.move	=	(60 | 58 << 6 | QUEEN_CASTLE << 12);
 				Moves[wK]		=	BIT1 >> 58;
-				newMove.value			=	250;
+				newMove.value	=	250;
 				moveList.push_back(newMove);
 			}
 		}
+		std::cout << "so far so good3\n";
 	} else { 
 		for (int i	=	0; i < 6; i++)	Pieces[i] = board.Pieces[i+6];
 		ownPieces	=	board.CurrentBoard[BLACK];
@@ -536,6 +539,8 @@ std::vector<ExtMove> AllMoves(BOARD_C board, int side){
 		}
 	}
 
+	std::cout << "so far so good\n";
+
 	for (int i = 0; i < 6; i++){
 		while (Pieces[i] != 0){
 			BitBoard		moveHolder;
@@ -545,6 +550,67 @@ std::vector<ExtMove> AllMoves(BOARD_C board, int side){
 			Moves[i]		|=	moveHolder;
 		}	
 	}	
+	return moveList;
+}
+
+//return enpassant + castling moves
+std::vector<ExtMove> SpecialMoves(BOARD_C board, int side){
+	std::vector<ExtMove> moveList;
+	BitBoard Pieces[15];
+	BitBoard Moves[15];
+	BitBoard enemyPieces, ownPieces;
+	Castling_right	castK, castQ;
+	for (int i = 0; i < 6; i++) Moves[i] = 0;
+	if (side == WHITE){
+		for (int i = 0; i < 6; i++)	Pieces[i]	=	board.Pieces[i];
+		ownPieces	=	board.CurrentBoard[WHITE];
+		enemyPieces	=	board.CurrentBoard[BLACK];
+		castK		=	CastlingKW;
+		castQ		=	CastlingQW;
+		if (((board.PreviousMove >> 12) & 0x0f)	==	DOUBLE_PUSH){ //Check for enpassant, enpassant only work when there is a double pawn push by opp
+			int TO	=	((board.PreviousMove >> 6) & 0x3f);
+			if (board.Sq[TO + 1]	==	wP){
+				ExtMove newMove;
+				if (((TO + 1)%8) != 0) {
+					newMove.move	=	((TO + 1) | ((TO - 8) << 6) | ENPASSANT << 12);
+					newMove.value	=	41;
+					moveList.push_back(newMove);
+				}
+            } 
+			if (board.Sq[TO - 1]	==	wP){
+				ExtMove newMove;
+				if (((TO - 1)%8) != 7) {
+					newMove.move	=	((TO - 1) | ((TO - 8) << 6) | ENPASSANT << 12);
+					newMove.value	=	41;
+					moveList.push_back(newMove);
+				}
+			}
+		}
+		if ((board.Castling_check &	castK) != castK) {
+			if ((EVALUATION::LVA(60, board, BLACK)	!=	-1) || 
+				(EVALUATION::LVA(61, board, BLACK)	!=	-1) ||
+				(EVALUATION::LVA(62, board, BLACK)	!=	-1)) {} //check if castling kingside right into a check;
+			else if (board.Sq[62] == emptySqr && board.Sq[61] == emptySqr){
+				ExtMove newMove;
+				newMove.move	=	(60 | 62 << 6 | KING_CASTLE << 12);
+				Moves[wK]		=	BIT1 >> 62;
+				newMove.value	=	250;
+				moveList.push_back(newMove);
+			}
+		}
+		if ((board.Castling_check & castQ) != castQ){	
+			if (EVALUATION::LVA(60, board, BLACK)	!=	-1	||
+				EVALUATION::LVA(59, board, BLACK)	!=	-1	||
+				EVALUATION::LVA(58, board, BLACK)	!=	-1) {} //check if castling queenside right into a check;
+			else if (board.Sq[57] == emptySqr&& board.Sq[58] == emptySqr && board.Sq[59] == emptySqr){
+				ExtMove newMove;
+				newMove.move	=	(60 | 58 << 6 | QUEEN_CASTLE << 12);
+				Moves[wK]		=	BIT1 >> 58;
+				newMove.value			=	250;
+				moveList.push_back(newMove);
+			}
+		}
+	} 
 	return moveList;
 }
 
@@ -579,7 +645,7 @@ std::vector<ExtMove> CaptureMoves(BOARD_C board, int side){
 
 //return all quiet moves from a board configuration
 std::vector<ExtMove> QuietMoves(BOARD_C board, int side){
-		std::vector<ExtMove> moveList;
+	std::vector<ExtMove> moveList;
 	BitBoard Pieces[15];
 	BitBoard Moves[15];
 	BitBoard enemyPieces, ownPieces;
@@ -871,5 +937,3 @@ BOARD	MakeMove(BOARD initial, Move transformer){
 //It just take some times
 //Little girl you in the middle of the ride
 //Unfinished Undo Move
-
-
