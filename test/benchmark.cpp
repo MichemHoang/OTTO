@@ -1,6 +1,6 @@
 #include "board.h"
 #include "bitboard.h"
-#include <cassert>
+#include <search.h>
 
 int main(){
 

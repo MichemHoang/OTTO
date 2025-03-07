@@ -21,13 +21,13 @@ public:
     
     BOARD_C ();
 
-    std::string	toFENString();  //convert to FENString
-    void printBoard();
-    BOARD_C makeMove (ExtMove to);
-    BOARD_C makeMove (Move to);
-    BOARD_C undoMove (ExtMove undo);
-    void readFENString(std::string fenString);
-    void printAllMove();
+    std::string	ToFENString();  //convert to FENString
+    void PrintBoard();
+    BOARD_C MakeMove (ExtMove to);
+    BOARD_C MakeMove (Move to);
+    BOARD_C UndoMove (ExtMove undo);
+    void ReadFENString(std::string fenString);
+    void PrintAllMove();
 };
 
 #endif

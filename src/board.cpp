@@ -1,22 +1,22 @@
 #include "board.h"
 
-char 	 	Pieces [13]	=	{'P', 'N', 'B', 'R', 'Q', 'K', 'p', 'n', 'b', 'r', 'q', 'k', '.'};
-char		Castling[5]	=	{'K', 'Q', 'k', 'q', '-'};
-uint8_t		Castling_Val[5]		=	{CastlingKW, CastlingQW, CastlingKB, CastlingQB, 0};
+char 	Notation [13] = {'P', 'N', 'B', 'R', 'Q', 'K', 'p', 'n', 'b', 'r', 'q', 'k', '.'};
+char	Castling[5] = {'K', 'Q', 'k', 'q', '-'};
+uint8_t	Castling_Val[5] = {CastlingKW, CastlingQW, CastlingKB, CastlingQB, 0};
 
 BOARD_C::BOARD_C (){
-	readFENString(STANDARD);
+	ReadFENString(STANDARD);
 }
 
 int	CharToInt (char Mx, int ii){
     if (ii == 1)	
-		for (int i = 0; i < 12; i++){if (Mx	==	Pieces[i]) return i;}
+		for (int i = 0; i < 12; i++){if (Mx	==	Notation[i]) return i;}
 	else 			
 		for (int i = 0; i < 5; i++)	{if (Mx	==	Castling[i]) return i;}
 	return -1;
 }
 
-void BOARD_C::readFENString(std::string fenString){
+void BOARD_C::ReadFENString(std::string fenString){
 	int BrdIter	=	0;
     CurrentBoard[0]	= 0;
     CurrentBoard[1]	= 0;
@@ -46,16 +46,23 @@ void BOARD_C::readFENString(std::string fenString){
 		Castling_check	&=	~Castling_Val[Px];
 		iter++;
 	}
+	//yo this seems sus?
 	iter+=5;
+	//std::cout << "fenString = " << fenString << "\n";
+	//std::cout << "fenString[iter] = " << fenString[iter] << "\n";
 	uint8_t	Moves	=	((int)fenString[iter] - 48);
-	if (fenString[++iter]!= ' ') {
-		Moves	*=	10;
-		Moves	+=	(int)fenString[iter] - 48;
+	//std::cout << "Moves = " << (int)Moves << "\n";
+	iter++;
+	if (iter < fenString.size()){
+		if (fenString[iter]!= ' ') {
+			Moves	*=	10;
+			Moves	+=	(int)fenString[iter] - 48; //clgt Michem?? 
+		}
 	}
 	No_Ply	=	Moves*2;
 }
 
-std::string BOARD_C::toFENString(){
+std::string BOARD_C::ToFENString(){
     std::string	FEN_STRING	= "";
 	int	counter;
 	for (int i = 0; i < 8; i++){
@@ -64,7 +71,7 @@ std::string BOARD_C::toFENString(){
 			if (Sq[i*8 + j]	==	emptySqr)	counter++;
 			else {
 				if (counter != 0) FEN_STRING += std::to_string(counter);
-				FEN_STRING	+=	Pieces[Sq[i*8 + j]];
+				FEN_STRING	+=	Notation[Sq[i*8 + j]];
 				counter = 0;
 			}
 		}
@@ -83,27 +90,31 @@ std::string BOARD_C::toFENString(){
 	int HalfMoveClock	=	0;
 	FEN_STRING	+= std::to_string(HalfMoveClock) + " ";
 	a	=	(int)No_Ply/2;
-	FEN_STRING	+= std::to_string(a) + " ";
-	std::cout << FEN_STRING << "\n";
+	FEN_STRING	+= std::to_string(a);
 	return FEN_STRING;
 }
 
-void BOARD_C::printBoard(){
+void BOARD_C::PrintBoard(){
     BitOp::PrintSQ(Sq);
     if (Side_to_move	==	WHITE)	std::cout	<< "WHITE TURN\n";
     else 							std::cout	<< "BLACK TURN\n";
 }
 
-BOARD_C BOARD_C::makeMove (ExtMove transformer){
+BOARD_C BOARD_C::MakeMove (ExtMove transformer){
     Move newMove = transformer.move;
-    return makeMove(newMove);
+    return MakeMove(newMove);
 }
 
-BOARD_C BOARD_C::makeMove (Move transformer){
+BOARD_C BOARD_C::MakeMove (Move transformer){
     BOARD_C newboard = *this;
     uint8_t	from	=	transformer & 0x3f;
 	uint8_t to		=	transformer >> 6 & 0x3f;
-	uint8_t flag	=	transformer >> 12 & 0x0f;;
+	uint8_t flag	=	transformer >> 12 & 0x0f;
+
+	//std::cout << "from = " << (int)from << " to = " << (int)to << " flag = " << (int)flag << "\n";
+	if (0 > from || from > 63 || 0 > to || to > 63){
+		//verified input;
+	}
 	if (newboard.Sq[from] == (wR + 6*newboard.Side_to_move)){
 		if 		(from	==	(63 - (56*newboard.Side_to_move)))	newboard.Castling_check |=	0x08 << (4*newboard.Side_to_move);
 		else if (from	==	(56 - (56*newboard.Side_to_move)))	newboard.Castling_check |=	0x04 << (4*newboard.Side_to_move);
@@ -111,7 +122,7 @@ BOARD_C BOARD_C::makeMove (Move transformer){
 	if (newboard.Sq[from] == (wK + 6*newboard.Side_to_move)){
 		newboard.Castling_check |=	(0xC << (4*newboard.Side_to_move));
 	}
-	newboard.Pieces[newboard.Sq[from] ]	=	(newboard.Pieces[newboard.Sq[from] ]	& ~(BIT1 >> from)) | (BIT1 >> to);
+	newboard.Pieces[newboard.Sq[from] ]	=	(newboard.Pieces[newboard.Sq[from]]	& ~(BIT1 >> from)) | (BIT1 >> to);
 	newboard.Pieces[newboard.Sq[to] ]	=	newboard.Pieces[newboard.Sq[to]	]	& ~(BIT1 >> to);
 	newboard.Sq[to]		=	newboard.Sq[from];
 	newboard.Sq[from]	=	emptySqr; 
@@ -141,13 +152,18 @@ BOARD_C BOARD_C::makeMove (Move transformer){
 			newboard.Sq[to - 8]	=	emptySqr;
 		}
 	}
-	newboard.CurrentBoard[0]	=	newboard.Pieces[wP] | newboard.Pieces[wN] | newboard.Pieces[wR] | newboard.Pieces[wB] | newboard.Pieces[wK] | newboard.Pieces[wQ];
-	newboard.CurrentBoard[1]	=	newboard.Pieces[bP] | newboard.Pieces[bN] | newboard.Pieces[bR] | newboard.Pieces[bB] | newboard.Pieces[bK] | newboard.Pieces[bQ];
+	//currentBoard
+	newboard.CurrentBoard[0] = newboard.Pieces[wP] | newboard.Pieces[wN] | newboard.Pieces[wR] | newboard.Pieces[wB] | newboard.Pieces[wK] | newboard.Pieces[wQ];
+	newboard.CurrentBoard[1] = newboard.Pieces[bP] | newboard.Pieces[bN] | newboard.Pieces[bR] | newboard.Pieces[bB] | newboard.Pieces[bK] | newboard.Pieces[bQ];
 	newboard.Side_to_move	^=	0x01;
 	newboard.PreviousMove	=	transformer;//
 	newboard.No_Ply++;
 	return newboard;
 }
 
-BOARD_C BOARD_C::undoMove (ExtMove to){
+void BOARD_C::PrintAllMove(){
+
+}
+
+BOARD_C BOARD_C::UndoMove (ExtMove to){
 }

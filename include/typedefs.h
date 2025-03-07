@@ -43,7 +43,7 @@ const BitBoard 		BIT1	  = 0x8000000000000000;
 const BitBoard 		EMPTY_BRD = 0x0000000000000000;
 const int			MAX_VALUE =	65536;
 const int 			MIN_VALUE =	-65536;
-const std::string	STANDARD  =	"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0 ";
+const std::string	STANDARD  =	"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0";
 
 enum Signal {
 	TIMEOUT			=	-2,
@@ -82,7 +82,8 @@ const int VALUE[13]	= {BEGIN::P_VALUE, BEGIN::N_VALUE, BEGIN::B_VALUE, BEGIN::R_
 //Move with value and its functions
 struct ExtMove {
 	Move move;
-	int value;
+	int value;		//initial value
+	int searchValue; //value after search
 
 	void operator=(ExtMove m) { move = m.move; value = m.value;	}
 	bool operator>(ExtMove m) { return  value > m.value; }

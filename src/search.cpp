@@ -1,5 +1,5 @@
 #include "search.h"
-
+#include <vector>
 
 int max (int A, int B){	if ( A > B ) return A; return B;	}
 
@@ -7,37 +7,41 @@ int min (int A, int B){	if ( A <= B ) return A; return B;	}
 
 
 Search::Search	(){
-	TRANS_TABLE.setSize(1000000);
-	FEN_Op::READ_FEN(STANDARD, &Position);
-	SearchNode	=	0;
+	TRANS_TABLE.SetSize(1000000);
+	FEN_Op::READ_FEN(STANDARD, &position);
+	searchNode = 0;
 }
 
 void Search::TimeOut (bool FIN){
-	OutOfTime = FIN;
+	outOfTime = FIN;
 }
 
-void Search::setPosition(BOARD Pos){
-	Position	=	Pos;
+void Search::SetPosition(BOARD _position){
+	position = _position;
 }
 
-void Search::setTableSize	(int   Size){
-	TRANS_TABLE.setSize(Size);
+void Search::SetPosition(BOARD_C _position){
+	boardPosition = _position;
 }
 
-uint64_t Search::getSearchNode	(){
-	return SearchNode;
+void Search::SetTableSize	(int   Size){
+	TRANS_TABLE.SetSize(Size);
 }
 
-int Search::getDatabaseSize	(){
+uint64_t Search::GetSearchNode	(){
+	return searchNode;
+}
+
+int Search::GetDatabaseSize	(){
 	return TRANS_TABLE.getSize();
 }
 
-int	Search::getTime(){
-	return MoveTime;
+int	Search::GetTime(){
+	return moveTime;
 }
 
 int	Search::QuiesceneSearch	(BOARD A, int Alpha, int Beta){
-	SearchNode++;
+	searchNode++;
 	ExtMove CaptureList[20];
 	ExtMove *iter	=	CaptureList;
 	int evaluation	=	EVALUATION::Evaluate(A, A.Side_to_move);
@@ -53,6 +57,28 @@ int	Search::QuiesceneSearch	(BOARD A, int Alpha, int Beta){
 			CaptureList[iMin]	=	tmp;
 		}
 		evaluation	=	-QuiesceneSearch(MOVE::MakeMove(A, CaptureList[i]), -Beta, -Alpha);
+		if (evaluation 	>=	Beta) 	{	return Beta;	}
+		if (evaluation  >=	Alpha) 	{	Alpha 	=	evaluation;	}
+    }
+    return Alpha;
+}
+
+int	Search::QuiesceneSearch	(BOARD_C board, int Alpha, int Beta){
+	searchNode++;
+	std::vector<ExtMove> CaptureList;
+	int evaluation	=	EVALUATION::Evaluate(board, board.Side_to_move);
+	if (evaluation 	>=	Beta) 	{	return Beta;	}
+	if (evaluation  >=	Alpha) 	{	Alpha 	=	evaluation;	}
+	CaptureList	= GENERATE::CaptureMoves(board, board.Side_to_move); 
+	for (int i = 0; i < CaptureList.size(); i++){
+		int iMin = i;
+		for (int j = i+1; j < CaptureList.size(); j++)	if (CaptureList[j].value > CaptureList[iMin].value)	iMin	=	j;
+		if ( i != iMin )	{
+			ExtMove	tmp			=	CaptureList[i];
+			CaptureList[i]		=	CaptureList[iMin];
+			CaptureList[iMin]	=	tmp;
+		}
+		evaluation	=	-QuiesceneSearch(board.MakeMove(CaptureList[i]), -Beta, -Alpha);
 		if (evaluation 	>=	Beta) 	{	return Beta;	}
 		if (evaluation  >=	Alpha) 	{	Alpha 	=	evaluation;	}
     }
@@ -90,7 +116,7 @@ std::pair<Move, int> Search::AlphaBeta (BOARD A, int DEPTH, int Alpha, int Beta,
 			}
 		}
 	}
-	SearchNode++;
+	searchNode++;
 	
 	//----------------------------NEGAMAX--------------------------
 	
@@ -110,11 +136,11 @@ std::pair<Move, int> Search::AlphaBeta (BOARD A, int DEPTH, int Alpha, int Beta,
 		int	Temp	=	-AlphaBeta(MOVE::MakeMove(A, HashMove), DEPTH - 1, -Beta, -Alpha, 
 								   FINAL_DEPT, UpdateKey(ZobristHash, HashMove.move, A),false).second;
 		v			=	max(v, Temp);
-		if (OutOfTime == 1)	return result;
+		if (outOfTime == 1)	return result;
         if ( BestValue != v ) 	result	=	 std::make_pair(HashMove.move, v);
 		if ( Alpha < v) 		Alpha	=	v;
 		if ( Alpha >= Beta )  {	
-			if (HashMove.getFlags() != 4 )	KillerMove[DEPTH][0] = HashMove.move;
+			if (HashMove.getFlags() != 4 )	killerMove[DEPTH][0] = HashMove.move;
 			BreakSign = true;	
 		}
 	}
@@ -124,26 +150,26 @@ std::pair<Move, int> Search::AlphaBeta (BOARD A, int DEPTH, int Alpha, int Beta,
 	if (!BreakSign){
 		ListSize	=	GENERATE::AllMove(A, MoveList, A.Side_to_move);	
 		for (int i = 0; i < ListSize; i++){
-			if (MoveList[i].move == KillerMove[DEPTH][0]){
-				MoveList[i].value = 100;
+			if (MoveList[i].move == killerMove[DEPTH][0]){
+				MoveList[i].value += 150;
 				break;
 			}	
 		}	
 		
-		for (int iterYo = 0; iterYo < ListSize; iterYo++){
-			int iMin = iterYo;
-			for (int j = iterYo+1; j < ListSize; j++)	if (MoveList[j].value > MoveList[iMin].value)	iMin	=	j;
-			if ( iterYo != iMin )	{
-				ExtMove	tmp			=	MoveList[iterYo];
-				MoveList[iterYo]	=	MoveList[iMin];
+		for (int moveIterator = 0; moveIterator < ListSize; moveIterator++){
+			int iMin = moveIterator;
+			for (int j = moveIterator+1; j < ListSize; j++)	if (MoveList[j].value > MoveList[iMin].value)	iMin	=	j;
+			if ( moveIterator != iMin )	{
+				ExtMove	tmp			=	MoveList[moveIterator];
+				MoveList[moveIterator]	=	MoveList[iMin];
 				MoveList[iMin]		=	tmp;
-				if (iterYo	==	0)	{MaxMoveValue	=	MoveList[iterYo].value;}
+				if (moveIterator	==	0)	{MaxMoveValue	=	MoveList[moveIterator].value;}
 			};
 			
 			
 			//Late Move Reduction;
 			if (!CheckLMR){
-				if (ShallowDone && (iterYo > 4 || iterYo > ListSize/4) && !LMR){
+				if (shallowSearch && (moveIterator > 4 || moveIterator > ListSize/4) && !LMR){
 					if (DEPTH > 2 && DEPTH <= FINAL_DEPT - 1) {
 						if (HashMoveFound || MaxMoveValue > 200){
                             // std::cout	<< "LMR\n";
@@ -154,22 +180,22 @@ std::pair<Move, int> Search::AlphaBeta (BOARD A, int DEPTH, int Alpha, int Beta,
 					}
 				}
 			}
-			if (MoveList[iterYo].move != HashMove.move){
+			if (MoveList[moveIterator].move != HashMove.move){
 				BestValue	=	v;
-				int	Temp	=	-AlphaBeta(MOVE::MakeMove(A, MoveList[iterYo]), DEPTH - 1 - LateMove, -Beta, -Alpha, 
-											FINAL_DEPT, UpdateKey(ZobristHash, MoveList[iterYo].move, A), LMR).second;
+				int	Temp	=	-AlphaBeta(MOVE::MakeMove(A, MoveList[moveIterator]), DEPTH - 1 - LateMove, -Beta, -Alpha, 
+											FINAL_DEPT, UpdateKey(ZobristHash, MoveList[moveIterator].move, A), LMR).second;
 				v			=	max(v, Temp);
 				if ( BestValue != v &&  LMR && LateMove != 2){
-					v 		=	BestValue;
-					Temp	=	-AlphaBeta(MOVE::MakeMove(A, MoveList[iterYo]), DEPTH - 1, -Beta, -Alpha, 
-										   FINAL_DEPT, UpdateKey(ZobristHash, MoveList[iterYo].move, A), false).second;
-					v			=	max(v, Temp);
+					v 	 =	BestValue;
+					Temp =	-AlphaBeta(MOVE::MakeMove(A, MoveList[moveIterator]), DEPTH - 1, -Beta, -Alpha, 
+										   FINAL_DEPT, UpdateKey(ZobristHash, MoveList[moveIterator].move, A), false).second;
+					v	 =	max(v, Temp);
 				}
-				if (OutOfTime == 1)	return result;
-                if ( BestValue != v ) 	result	=	 std::make_pair(MoveList[iterYo].move, v);
+				if (outOfTime == 1)	return result;
+                if ( BestValue != v ) 	result	=	 std::make_pair(MoveList[moveIterator].move, v);
 				if ( Alpha < v) Alpha	=	v;
 				if ( Alpha >= Beta )  {	
-					if (MoveList[iterYo].getFlags() != 4 )	KillerMove[DEPTH][0] = MoveList[iterYo].move;
+					if (MoveList[moveIterator].getFlags() != 4 ) killerMove[DEPTH][0] = MoveList[moveIterator].move;
 					break;
 				}
 			}
@@ -197,73 +223,277 @@ std::pair<Move, int> Search::AlphaBeta (BOARD A, int DEPTH, int Alpha, int Beta,
     return result;
 }
 
+ExtMove Search::AlphaBeta (BOARD_C board, int depth, int alpha, int beta, int finalDepth, Key zobristHash, bool lateMoveReduction){
+	bool breakSign = false;
+    ExtMove result;
+	std::vector<ExtMove> moveList;
+	int	alpha0 = alpha;
+	int	currentSearchValue, bestValue, lateMove;
+	ExtMove	hashMove;
+	bool hashMoveFound = false;
+	int maxMoveValue = 0;
+	bool checkLMR =	false;
+	hashMove.move =	0;
+	HashEntry memo;
+
+	//std::cout << "Check if value is in Hash Table\n";
+	//-------------------Check if value is in Hash Table-----------------
+	if (TRANS_TABLE.FindEntry(zobristHash, &memo)){
+		hashMove.move	=	memo.BestMove;
+		hashMoveFound	=	true;
+		if ( memo.Depth	>=	(depth)){
+			switch (memo.Node_Type){
+				case EXACT		:	
+                    if (depth	!=	finalDepth){
+						result.move = board.PreviousMove;
+						result.searchValue = memo.Evaluation;
+						return 	result;
+					}	
+                    else {
+						result.move = memo.BestMove;
+						result.searchValue = memo.Evaluation;
+						return 	result;
+					}
+                case UPPERBOUND	:	alpha	=	max(alpha, memo.Evaluation);	break;
+				case LOWERBOUND	:	beta	=	min(beta, memo.Evaluation);		break;
+			}
+			
+			if (alpha >= beta) {
+                result.move = board.PreviousMove;
+				result.searchValue = memo.Evaluation;
+				return 	result;
+			}
+		}
+	}
+	searchNode++;
+	
+	//std::cout << "Negamax\n";
+	//----------------------------NEGAMAX--------------------------
+	
+	//Reaching Leaf node
+	if (depth == 0 || board.Pieces[wK + 6* (board.Side_to_move)] == 0) {
+		//std::cout << "Reaching Leaf node\n";
+		if ( board.Pieces[wK + 6* (board.Side_to_move)] == 0 )	{
+			result.move = board.PreviousMove;
+			result.searchValue = -19999;
+			return  result;
+		}
+		int evaluation = QuiesceneSearch(board, alpha, beta);
+		result.move = board.PreviousMove;
+		result.searchValue = evaluation;
+        return  result;
+	}
+
+	currentSearchValue = MIN_VALUE;
+	
+	//std::cout << "best move from hashtable\n";
+	//Best move from hash table
+	if (hashMove.move != 0)	{
+		bestValue = currentSearchValue;
+		//this seems sus??
+		//std::cout << "susss\n";
+		int	value = -AlphaBeta(board.MakeMove(hashMove), depth - 1, -beta, -alpha, 
+								   finalDepth, UpdateKey(zobristHash, hashMove.move, board), false).searchValue;
+		//std::cout << "end of sus\n";
+		currentSearchValue = max(currentSearchValue, value);
+		if ( outOfTime == 1 ) return result;
+        if ( bestValue != currentSearchValue ) {
+			result.move = hashMove.move;
+			result.searchValue = currentSearchValue;
+		}
+		if ( alpha < currentSearchValue) alpha = currentSearchValue;
+		if ( alpha >= beta )  {	
+			if (hashMove.getFlags() != 4 )	killerMove[depth][0] = hashMove.move;
+			breakSign = true;	
+		}
+	}
+	
+	lateMove	=	0;
+    // std::cout	<< "Generating Move\n";
+
+	//std::cout << "generate all moves\n";
+	moveList = GENERATE::AllMoves(board, board.Side_to_move); //generate all moves
+	
+	//check if move are in killerMove (previously search)
+	//std::cout << "killer move\n";
+	for (int i = 0; i < moveList.size(); i++){
+		if (moveList[i].move == killerMove[depth][0]){
+			moveList[i].value = 300;
+			break;
+		}	
+	}	
+
+	//std::cout << "actual alphaBeta\n";
+	for (int moveIterator = 0; moveIterator < moveList.size(); moveIterator++){
+		int maxPosition = moveIterator;
+		//selection sort sdepthReducee the moveList array is quite small, smaller overhead
+		//also if cut off happen we dont have to sort the rest of the list
+		//tiny optimization victory - or maybe doesnt even matter at all, need to compare with one where the list is already sorted.
+		for (int j = moveIterator+1; j < moveList.size(); j++) if (moveList[j].value > moveList[maxPosition].value) maxPosition = j;
+		if ( moveIterator != maxPosition )	{
+			ExtMove	tmp	=	moveList[moveIterator];
+			moveList[moveIterator] = moveList[maxPosition];
+			moveList[maxPosition] = tmp;
+			if (moveIterator	==	0)	{maxMoveValue = moveList[moveIterator].value;}
+		};
+		
+		//Late Move Reduction;
+		if (!checkLMR){
+			if (shallowSearch && (moveIterator > 4 || moveIterator > moveList.size()/4) && !lateMoveReduction){
+				if (depth > 2 && depth <= finalDepth - 1) {
+					if (hashMoveFound || maxMoveValue > 200){
+						// std::cout	<< "LMR\n";
+						lateMoveReduction	= true;
+						checkLMR = true;
+						lateMove = 2;
+					} 
+				}
+			}
+		}
+
+		//need to reexamine the latemove reduction (logic seems to be off)
+		if (moveList[moveIterator].move != hashMove.move){
+			bestValue =	currentSearchValue;
+			int	Temp = -AlphaBeta(board.MakeMove(moveList[moveIterator]), depth - 1 - lateMove, -beta, -alpha, 
+								finalDepth, UpdateKey(zobristHash, moveList[moveIterator].move, board), lateMoveReduction).searchValue;
+			currentSearchValue = max(currentSearchValue, Temp);
+			if ( bestValue != currentSearchValue && lateMoveReduction && lateMove != 2){
+				currentSearchValue = bestValue;
+				Temp = -AlphaBeta(board.MakeMove(moveList[moveIterator]), depth - 1, -beta, -alpha, 
+							   finalDepth, UpdateKey(zobristHash, moveList[moveIterator].move, board), false).searchValue;
+				currentSearchValue = max(currentSearchValue, Temp);
+			}
+			if (outOfTime == 1)	return result;
+            if ( bestValue != currentSearchValue ) 	{
+				result.move	= moveList[moveIterator].move;
+				result.searchValue = currentSearchValue;
+			}
+			if ( alpha < currentSearchValue) alpha = currentSearchValue;
+			if ( alpha >= beta )  {	
+				if (moveList[moveIterator].getFlags() != 4 ) killerMove[depth][0] = moveList[moveIterator].move;
+				break;
+			}
+		}
+	}
+
+    //---------------------STORE_NODES_IN_DATABASE---------------------
+	uint8_t flag;
+	if 		(bestValue	<=	alpha0)	flag = UPPERBOUND;
+	else if (bestValue	>=	beta) flag = LOWERBOUND;
+	else flag = EXACT;
+	HashEntry newEntry;
+	newEntry.BestMove	=	result.move;
+	newEntry.Depth		=	depth;
+	newEntry.Flag		=	false;
+	newEntry.Node_Type	=	flag;
+	newEntry.Evaluation	=	currentSearchValue;
+	newEntry.HashValue	=	zobristHash;
+	TRANS_TABLE.addEntry(zobristHash, newEntry);
+	return result;
+}
+
+ExtMove Search::SearchPosition(int maxDepth, bool iterative){
+	std::cout << "begin alphabeta search\n";
+	time_t now;
+	int timer = time(&now);
+	int	materialPoint = 0;
+	BitString boardHashValue = GetKey(boardPosition);
+	int	alpha = MIN_VALUE;
+	int beta = MAX_VALUE;
+    ExtMove optimalMove;
+	ExtMove previousMove;
+
+	if (iterative){
+	//Iterative deepening search loop
+		shallowSearch = false;
+		for (int depthReduce =	4; depthReduce >= 0; depthReduce-=2){ //
+		std::cout << "iterative search\n";
+			searchNode = 0;
+			optimalMove	= AlphaBeta(boardPosition, maxDepth - depthReduce, alpha, beta, maxDepth - depthReduce, boardHashValue, false);
+			TRANS_TABLE.UpdateTable();
+			std::cout << "Optimal move = ";
+			DECODE::DecodeMove(optimalMove.move);
+			std::cout << "Optimal move score = " << optimalMove.searchValue << std::endl;
+			/*
+			if (depthReduce == 2)	{
+				std::cout	<< "Search node = " << GetSearchNode() << std::endl;
+				DECODE::DecodeMove(optimalMove.move);
+				int TimeLimit	=	time(&now) - timer;
+				if (TimeLimit > 400) {
+					std::cout	<< "Exceed Time Limit\n";
+					moveTime	=	TimeLimit;
+					break;
+				}
+			}*/
+			shallowSearch = true;
+			//if (outOfTime) optimalMove = previousMove;
+			//else previousMove = optimalMove;
+			//Alpha		=	STORE_MOVE.second - 250;
+			//Beta		=	STORE_MOVE.second + 250;
+		}
+	}
+	TRANS_TABLE.UpdateTable();
+	moveTime = time(&now) - timer;
+    std::cout << "Move score = " << optimalMove.searchValue <<  std::endl;
+	DECODE::DecodeMove(optimalMove.move);
+	return optimalMove;
+}
+
 std::pair<Move, int> Search::SearchPosition (int MAX_DEPTH){
 	time_t 		now;
 	int 		Timer	=	time(&now);
-	int			Material_Point	=	0;
-	BitString 	BoardHashValue	=	GetKey(Position);
+	int			Material_Point = 0;
+	BitString 	BoardHashValue = GetKey(position);
 	ExtMove 	FirstBatch[MAX_MOVES];
 	int			Alpha	=	MIN_VALUE;
 	int 		Beta	=	MAX_VALUE;
-     std::pair<Move, int> STORE_MOVE;
-     std::pair<Move, int> OPTIMAL_MOVE;
+    std::pair<Move, int> STORE_MOVE;
+    std::pair<Move, int> OPTIMAL_MOVE;
 	
-    OutOfTime	=	false;
-	//Checking gamestate based on material score
-	//Max Material (No King) = 8140 (both side);
-	for (int i = 0; i < 5; i++) 
-		Material_Point += (BitOp::PopsCount(Position.Pieces[i] | Position.Pieces[i + 6])) * VALUE[i];
-	if (Material_Point <= 6000) {
-         std::cout	<< "Increase search depth\n";\
-		MAX_DEPTH += 2;
-	}
-	if (Material_Point <= 4000) {
-         std::cout	<< "EndGame Game\n";\
-	}
-	
+    outOfTime	=	false;
 	//Reduce Depth based on killer capture	
-	ExtMove *Batch	=	FirstBatch;
-	int BSIZE	=	GENERATE::AllMove(Position, Batch, Position.Side_to_move);
-	for (int iterYo = 0; iterYo < BSIZE; iterYo++){
-		int iMin = iterYo;
-		for (int j = iterYo+1; j < BSIZE; j++)	if (Batch[j].value > Batch[iMin].value)	iMin	=	j;
-		if ( iterYo != iMin )	{
-			ExtMove	tmp			=	Batch[iterYo];
-			Batch[iterYo]	=	Batch[iMin];
+	ExtMove *Batch	=	FirstBatch; 
+	int BSIZE	=	GENERATE::AllMove(position, Batch, position.Side_to_move);
+	for (int moveIterator = 0; moveIterator < BSIZE; moveIterator++){
+		int iMin = moveIterator;
+		for (int j = moveIterator+1; j < BSIZE; j++)	if (Batch[j].value > Batch[iMin].value)	iMin	=	j;
+		if ( moveIterator != iMin )	{
+			ExtMove	tmp			=	Batch[moveIterator];
+			Batch[moveIterator]	=	Batch[iMin];
 			Batch[iMin]		=	tmp;
 		};
 	}
 	if (FirstBatch[0].getFlags() == 4 && Material_Point < 6500)
 		if ((FirstBatch[0].value - FirstBatch[1].value ) >= 350) {
-             std::cout	<< "Capture reduction\n";
+            std::cout	<< "Capture reduction\n";
 			MAX_DEPTH -= 2;
 		}
 		
 	//Iterative deepening search loop
-	ShallowDone	=	false;
-	for (int inc =	4; inc >= 0; inc-=2){
-		SearchNode	=	0;
-		OPTIMAL_MOVE	=	AlphaBeta(Position, MAX_DEPTH - inc, Alpha, Beta, MAX_DEPTH - inc, BoardHashValue, false);
+	shallowSearch	=	false;
+	for (int depthReduce =	4; depthReduce >= 0; depthReduce-=2){
+		searchNode	=	0;
+		OPTIMAL_MOVE	=	AlphaBeta(position, MAX_DEPTH - depthReduce, Alpha, Beta, MAX_DEPTH - depthReduce, BoardHashValue, false);
 		TRANS_TABLE.UpdateTable();
-         std::cout	 << "Move score = " << OPTIMAL_MOVE.second <<  std::endl;
-		if (inc == 2)	{
-             std::cout	<< "Search node = " << getSearchNode() <<  std::endl;
+		std::cout	 << "Optimal move score = " << OPTIMAL_MOVE.second <<  std::endl;
+		if (depthReduce == 2)	{
+            std::cout	<< "Search node = " << GetSearchNode() <<  std::endl;
 			DECODE::DecodeMove(OPTIMAL_MOVE.first);
 			int TimeLimit	=	time(&now) - Timer;
 			if (TimeLimit > 400) {
-                 std::cout	<< "Exceed Time Limit\n";
-				MoveTime	=	TimeLimit;
+                std::cout	<< "Exceed Time Limit\n";
+				moveTime	=	TimeLimit;
 				break;
 			}
 		}
-		ShallowDone	=	true;
-		if (OutOfTime)	OPTIMAL_MOVE =	STORE_MOVE;
+		shallowSearch	=	true;
+		if (outOfTime)	OPTIMAL_MOVE =	STORE_MOVE;
 		else STORE_MOVE = OPTIMAL_MOVE;
 		//Alpha		=	STORE_MOVE.second - 250;
 		//Beta		=	STORE_MOVE.second + 250;
 	}
 	TRANS_TABLE.UpdateTable();
-	MoveTime	=	time(&now) - Timer;
-    std::cout	 << "Move score = " << OPTIMAL_MOVE.second <<  std::endl;
+	moveTime = time(&now) - Timer;
+    std::cout << "Move score = " << OPTIMAL_MOVE.second <<  std::endl;
 	return OPTIMAL_MOVE;
 }

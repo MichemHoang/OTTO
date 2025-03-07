@@ -14,5 +14,6 @@ int	SEEA(int To, BOARD_C A, int from); // static exhange equaivalent
 int LVA	(int att_Sqr, BOARD A, int side);
 int LVA (int att_Sqr, BOARD_C board, int side); //Least valuable attacker
 int	DynamicEval	(BOARD A, int Alpha, int Beta);
+int	DynamicEval	(BOARD_C A, int Alpha, int Beta); //Dynamic Evaluation
 }
 #endif 

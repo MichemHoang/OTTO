@@ -9,6 +9,8 @@
 #include <vector>
 #include <string>
 #include <board.h>
+#include <immintrin.h>
+
 
 /*
  * 1		0000			quiet moves
@@ -23,6 +25,7 @@ int QuietMove	( struct BOARD A, ExtMove *MoveList, int Color);
 std::vector<ExtMove> AllMoves(BOARD_C board, int side);
 std::vector<ExtMove> CaptureMoves(BOARD_C board, int side);
 std::vector<ExtMove> QuietMoves(BOARD_C board, int side);
+std::vector<ExtMove> SpecialMoves(BOARD_C board, int side);
 
 BitBoard Picker	(int chooser, int pos, BitBoard OwnPieces, BitBoard EnemyPieces, int Color, BitBoard capture);
 BitBoard Pawn	(int position, BitBoard OwnPieces, BitBoard EnemyPieces, int Color, BitBoard cap);

@@ -21,11 +21,13 @@ private:
     int 	Sig;
 	bool	UNLOCK;
 	Search	GAME;
+	Search  alphaBeta;
     Book    book;
 public:
     void	AIMove(Search *A, int *TotalTime, int level, std::pair<Move, int> *ANS);
 	void	InitBoard()	;
 	void 	Init_engine();
+	void	DisplayMove(BOARD_C board, int MType);
 	void 	Display_Move(BOARD A, int MType);
 	void 	StartGame(void *threadArg);
 	void 	Timer();

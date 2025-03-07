@@ -1,31 +1,50 @@
 #include "game.h"
 
 void Game::InitBoard()				{
-    FEN_Op::READ_FEN(STANDARD, &INIT);
+    FEN_Op::READ_FEN("4rb2/3qrk2/1p1p1n2/7p/P2P4/4R2P/1BQN1P2/1K4R1 w - - 3 39", &INIT);
 	BitOp::getBoardInfo(INIT);
 }
 
 void Game::Init_engine(){
-    std::cout	<< sizeof(HashEntry) << std::endl;
+    std::cout << sizeof(HashEntry) << std::endl;
 	INITIALIZE::Mask();
 	INITIALIZE::MoveData();
     InitZoBrist(true);
 	InitBoard();
     book.Init();
-    Sig	=	BEGIN_SEARCH;
-	UNLOCK	=	false;
+    Sig	= BEGIN_SEARCH;
+	UNLOCK = false;
+}
+
+void Game::DisplayMove(BOARD_C board, int MType){
+	std::vector<ExtMove> moveList;
+	switch (MType){
+		case (0):	moveList = GENERATE::AllMoves(board, board.Side_to_move); break;
+		case (1):	moveList = GENERATE::CaptureMoves(board, board.Side_to_move); 
+                    std::cout <<"Gen Capture\n";
+                    std::cout << "Capture list size = " << moveList.size() << std::endl;
+					break;
+		case (2):	moveList = GENERATE::QuietMoves(board, board.Side_to_move); 
+                    std::cout <<"Gen Quiet\n";
+                    std::cout << "Quiet list size = " << moveList.size() << std::endl;
+					break;	
+	}
+	for (int t = 0; t < moveList.size(); t++){
+        std::cout << t << ": ";
+		DECODE::DecodeMove(moveList[t].move);
+	}
 }
 
 void Game::Display_Move(BOARD A, int MType){
 	ExtMove ok[MAX_MOVES];
 	int size;
 	switch (MType){
-		case (0):	size=	GENERATE::AllMove(A, ok, A.Side_to_move); break;
-		case (1):	size=	GENERATE::CaptureMove(A, ok, A.Side_to_move); 
+		case (0):	size = GENERATE::AllMove(A, ok, A.Side_to_move); break;
+		case (1):	size = GENERATE::CaptureMove(A, ok, A.Side_to_move); 
                     std::cout <<"Gen Capture\n";
                     std::cout << "size = " << size << std::endl;
 					break;
-		case (2):	size=	GENERATE::QuietMove(A, ok, A.Side_to_move); 
+		case (2):	size = GENERATE::QuietMove(A, ok, A.Side_to_move); 
                     std::cout <<"Gen Quiet\n";
                     std::cout << "size = " << size << std::endl;
 					break;
@@ -38,7 +57,7 @@ void Game::Display_Move(BOARD A, int MType){
 }
 
 void Game::Timer(){
-	bool	Stop = false;
+	bool Stop = false;
 	int SearchTime;
 	int startTime;
     std::string line;
@@ -72,29 +91,29 @@ void Game::Timer(){
 
 void Game::AIMove(Search *A, int *TotalTime, int level, std::pair<Move, int> *ANS){
 	*ANS	=	A->SearchPosition(level);
-    std::cout	<< "Time = " << A->getTime() << std::endl;
-	*TotalTime	+=	A->getTime();
+    std::cout	<< "Time = " << A->GetTime() << std::endl;
+	*TotalTime	+=	A->GetTime();
 	Display_Move(INIT, 0);
 	DECODE::DecodeMove(ANS->first);
 	INIT	=	MOVE::MakeMove(INIT, ANS->first);
 	BitOp::getBoardInfo(INIT);
-	A->setPosition(INIT);
-    std::cout	<< "Database size = " << GAME.getDatabaseSize() << std::endl;
+	A->SetPosition(INIT);
+    std::cout	<< "Database size = " << GAME.GetDatabaseSize() << std::endl;
     std::cout	<< "FEN std::string = " << FEN_Op::toFEN(INIT) << std::endl;
-    std::cout	<< "SearchNode = " << GAME.getSearchNode() << std::endl;
+    std::cout	<< "SearchNode = " << GAME.GetSearchNode() << std::endl;
 }
 
 void Game::StartGame(void * GameArg){
-	int		level, AIvsAI, MaxMove, Side;
-	int		*PTR;
-	int		TotalTime		= 0;
-	GAME.setTableSize(30000000);
-	GAME.setPosition(INIT);
-    PTR			=	(int *) GameArg;
-	level		=	PTR[0];	MaxMove		=	PTR[1];
-	AIvsAI		=	PTR[2];	Side		=	PTR[3];
-    Sig	=	BEGIN_SEARCH;
-    std::pair<Move, int>	RES;
+	int	level, AIvsAI, MaxMove, Side;
+	int	*PTR;
+	int	TotalTime = 0;
+	GAME.SetTableSize(30000000);
+	GAME.SetPosition(INIT);
+    PTR	= (int *) GameArg;
+	level =	PTR[0];	MaxMove = PTR[1];
+	AIvsAI = PTR[2]; Side = PTR[3];
+    Sig	= BEGIN_SEARCH;
+    std::pair<Move, int> RES;
 	if (AIvsAI){
 		for (int i = 0; i < MaxMove * 2 - 1; i++){//MaxMove * 2
 			AIMove(&GAME, &TotalTime, level, &RES);
@@ -118,7 +137,7 @@ void Game::StartGame(void * GameArg){
 						INIT	=	MOVE::MakeMove(INIT, Koas);
 						BitOp::getBoardInfo(INIT);
 						FoundOpening = true;	
-						GAME.setPosition(INIT);
+						GAME.SetPosition(INIT);
 					}
 				} 
 				if (FoundOpening){}
@@ -131,7 +150,7 @@ void Game::StartGame(void * GameArg){
 			}  else {
 				Display_Move (INIT, 0);
 				ExtMove ok[MAX_MOVES];
-				int		PlayerMove;
+				int	PlayerMove;
 				GENERATE::AllMove(INIT, ok, INIT.Side_to_move);
                 std::cout	<< "Your Move " << std::endl;
                 std::cin		>> PlayerMove;
@@ -143,7 +162,7 @@ void Game::StartGame(void * GameArg){
 				INIT	=	MOVE::MakeMove(INIT, ok[PlayerMove]);
 				BitOp::getBoardInfo(INIT);	
                 std::cout	<< "FEN std::string = " << FEN_Op::toFEN(INIT) << std::endl;
-				GAME.setPosition(INIT);
+				GAME.SetPosition(INIT);
 				//RESET SEARCH TIMER
 				GAME.TimeOut(false);
                 Sig = BEGIN_SEARCH;

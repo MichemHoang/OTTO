@@ -6,14 +6,14 @@ void DecodeMove	(ExtMove *A){
 	std::string	from	=	squares[A->move	&	0x3F];
 	std::string to		=	squares[(A->move	&	0xFC0) >> 6];
 	int flags	=	(A->move	>> 12) & 0xF;
-	std::cout	<< std::dec <<	from << "->" << to << "   Flags = " << flags << "   Value = " << A->value << std::endl;
+	std::cout	<< std::dec <<	from << "->" << to << "   Flags = " << flags << "   Value = " << A->value << " hex:= " << std::dec << A->move << std::endl;
 }
 
 void DecodeMove	(Move A){
 	std::string	from	=	squares[A	&	0x3F];
 	std::string to		=	squares[(A	&	0xFC0) >> 6];
 	int flags	=	(A	>> 12) & 0xF;
-	std::cout	<< std::dec <<	from << "->" << to << "   Flags = " << flags << std::endl;
+	std::cout	<< std::dec <<	from << "->" << to << "   Flags = " << flags << " hex:= " << std::dec << A << std::endl;
 }
 
 }//endnamespace
@@ -101,8 +101,8 @@ void MoveEncoding(int isPawn, int from, BitBoard target, std::vector<ExtMove> *m
 			ExtMove newMove;
 			to = BitOp::BitPop(target);
 			if ((BIT1 >> to & enemy) != 0 )	{	
-				FLG =	CAPTURE;		
-				int a	=	EVALUATION::SEEA(to, board, from);
+				FLG = CAPTURE;		
+				int a =	EVALUATION::SEEA(to, board, from);
 				if (a > -90) a += 200; else a -= 200;
 				newMove.value = EVALUATION::PieceSquareValue(isPawn, from, to) + a;	
 			}
@@ -436,7 +436,6 @@ std::vector<ExtMove> AllMoves(BOARD_C board, int side){
 	BitBoard enemyPieces, ownPieces;
 	Castling_right	castK, castQ;
 	for (int i = 0; i < 6; i++) Moves[i] = 0;
-	std::cout << "so far so good\n";
 	if (side == WHITE){
 		for (int i = 0; i < 6; i++)	Pieces[i]	=	board.Pieces[i];
 		ownPieces	=	board.CurrentBoard[WHITE];
@@ -462,7 +461,6 @@ std::vector<ExtMove> AllMoves(BOARD_C board, int side){
 				}
 			}
 		}
-		std::cout << "so far so good\n";
 		if ((board.Castling_check &	castK) != castK) {
 			if ((EVALUATION::LVA(60, board, BLACK)	!=	-1) || 
 				(EVALUATION::LVA(61, board, BLACK)	!=	-1) ||
@@ -487,7 +485,6 @@ std::vector<ExtMove> AllMoves(BOARD_C board, int side){
 				moveList.push_back(newMove);
 			}
 		}
-		std::cout << "so far so good3\n";
 	} else { 
 		for (int i	=	0; i < 6; i++)	Pieces[i] = board.Pieces[i+6];
 		ownPieces	=	board.CurrentBoard[BLACK];
@@ -538,8 +535,6 @@ std::vector<ExtMove> AllMoves(BOARD_C board, int side){
 			}
 		}
 	}
-
-	std::cout << "so far so good\n";
 
 	for (int i = 0; i < 6; i++){
 		while (Pieces[i] != 0){
@@ -768,11 +763,11 @@ BitBoard Picker(int chooser, int position, BitBoard ownPieces, BitBoard enemyPie
 	BitBoard result;
 	switch (chooser){
 		case wP:	result	=	GENERATE::Pawn	( position,  ownPieces,  enemyPieces,  Color, capture);	break;
-		case wB:	result	=	GENERATE::Bishop( position,  ownPieces,  enemyPieces);					break;
-		case wR:	result	=	GENERATE::Rook	( position,  ownPieces,  enemyPieces);					break;
-		case wQ:	result	=	GENERATE::Queen	( position,  ownPieces,  enemyPieces);					break;
-		case wN:	result	=	GENERATE::Knight( position,  ownPieces,  enemyPieces);					break;
-		case wK:	result	=	GENERATE::King	( position,  ownPieces,  enemyPieces);					break;
+		case wB:	result	=	GENERATE::Bishop( position,  ownPieces,  enemyPieces);	break;
+		case wR:	result	=	GENERATE::Rook	( position,  ownPieces,  enemyPieces);	break;
+		case wQ:	result	=	GENERATE::Queen	( position,  ownPieces,  enemyPieces);	break;
+		case wN:	result	=	GENERATE::Knight( position,  ownPieces,  enemyPieces);	break;
+		case wK:	result	=	GENERATE::King	( position,  ownPieces,  enemyPieces);	break;
 	}
 	return result;
 }
@@ -934,6 +929,4 @@ BOARD	MakeMove(BOARD initial, Move transformer){
 }
 }
 
-//It just take some times
-//Little girl you in the middle of the ride
 //Unfinished Undo Move

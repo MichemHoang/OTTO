@@ -59,7 +59,7 @@ const std::string squares[64] = {
 	"A1", "B1", "C1", "D1", "E1", "F1", "G1", "H1"
 };
 
-struct	BOARD{
+struct BOARD{
 	BitBoard	Pieces[13];
 	BitBoard	CurrentBoard[2];
     uint8_t		Sq[64];
