@@ -341,20 +341,20 @@ int LVA(int att_Sqr, BOARD A, int side){
 	BitBoard B;
 	int position	=	-1;
 	//Check for pawn attack
-	B	=	MASK::PMask[side^1][att_Sqr]	&	A.Pieces[wP + 6*(side)];
+	B = MASK::PMask[side^1][att_Sqr] & A.Pieces[wP + 6*(side)];
 	while (B!=0){
-		position	=	BitOp::BitPop(B);
+		position = BitOp::BitPop(B);
 		return position;
 	}
 	
 	//Check for Knight attack
-	B	=	MASK::NMask[att_Sqr]	&	A.Pieces[wN	+	6 * side];
+	B	=	MASK::NMask[att_Sqr] & A.Pieces[wN	+	6 * side];
 	while (B!=0){
-		position	=	BitOp::BitPop(B);
+		position = BitOp::BitPop(B);
 		return position;
 	}
 	
-	SlidingPiece	=	GENERATE::Queen(att_Sqr, A.CurrentBoard[side ^ 1] | BIT1 >> att_Sqr, A.CurrentBoard[side]);
+	SlidingPiece = GENERATE::Queen(att_Sqr, A.CurrentBoard[side ^ 1] | BIT1 >> att_Sqr, A.CurrentBoard[side]);
 	//Check for rook/Bishop/Queen attack
 	for (int i = 0; i < 8; i++){
 		B	=	AttackRay[RayLookUp[i]][att_Sqr] & SlidingPiece ;
@@ -372,7 +372,7 @@ int LVA(int att_Sqr, BOARD A, int side){
 	}
 	if (QPosition	!=	-1) return QPosition;
 	B	=	MASK::KMask[att_Sqr]	&	A.Pieces[wK	+	6 * side];
-	position	=	BitOp::BitPop(B);
+	position = BitOp::BitPop(B);
 	return position;
 }
 
@@ -410,31 +410,35 @@ int	SEEA(int To, BOARD A, int from){
 	return gain[0];
 }
 
+//potential for parallel
+//SEE(Static exchange evaluation) - The Swap Algorithm 
 int	SEEA(int To, BOARD_C A, int from){
 	int gain[32]; 
 	int	depth = 0;
 	int	Attacker;
+	BitBoard bboardTo = (BIT1 >> To) ;
 	gain[0] = VALUE[A.Sq[To]];			//(Initial value)
-	A.Pieces[A.Sq[from]]				^=	 ( ( BIT1 >> from ) | (BIT1 >> To) );
-	A.Pieces[A.Sq[To]]					^=	 ( BIT1 >> To );
-	A.CurrentBoard[A.Side_to_move]		^=	 ( ( BIT1 >> from ) | (BIT1 >> To) );
-	A.CurrentBoard[A.Side_to_move ^ 1]	&=	 ~( BIT1 >> To );
+	A.Pieces[A.Sq[from]]				^=	 ( ( BIT1 >> from ) | (bboardTo) );
+	A.Pieces[A.Sq[To]]					^=	 ( bboardTo );
+	A.CurrentBoard[A.Side_to_move]		^=	 ( ( BIT1 >> from ) | (bboardTo) );
+	A.CurrentBoard[A.Side_to_move ^ 1]	&=	 ~( bboardTo );
 	A.Sq[To] = A.Sq[from];
 	A.Sq[from]	=	12;
 	A.Side_to_move	^=	1;
 	do {
 		Attacker = LVA(To, A, A.Side_to_move);
 		A.Side_to_move	^=	1;
+		//if (VALUE[A.Sq[to]] - VALUE[A.Sq[Attacker]] > 150 ) return -150;
 		if (Attacker == -1) break;
 		depth++;
 		gain[depth]	= VALUE[A.Sq[To]] - gain[depth-1];
 		if (-gain[depth-1] < 0 && gain[depth] < 0)	break;
-		A.Pieces[A.Sq[Attacker]]				^=	 ( ( BIT1 >> Attacker ) | (BIT1 >> To) );
-		A.Pieces[A.Sq[To]]						^=	 ( BIT1 >> To );
-		A.CurrentBoard[A.Side_to_move]			^=	 ( ( BIT1 >> Attacker ) | (BIT1 >> To) );
-		A.CurrentBoard[A.Side_to_move ^ 1]		&=	 ~( BIT1 >> To );
+		A.Pieces[A.Sq[Attacker]]				^=	 ( ( BIT1 >> Attacker ) | (bboardTo) );
+		A.Pieces[A.Sq[To]]						^=	 ( bboardTo );
+		A.CurrentBoard[A.Side_to_move]			^=	 ( ( BIT1 >> Attacker ) | (bboardTo) );
+		A.CurrentBoard[A.Side_to_move ^ 1]		&=	 ~( bboardTo );
 		A.Sq[To]		=	A.Sq[Attacker];
-		A.Sq[Attacker]	=	12;
+		A.Sq[Attacker]	=	12; //12 mean empty sqr i think
 	} while (1);
 	while (depth > 0)	{
 		if (-gain[depth-1] <= gain[depth]) gain[depth-1] = -gain[depth];

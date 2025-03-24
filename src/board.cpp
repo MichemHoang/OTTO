@@ -166,4 +166,7 @@ void BOARD_C::PrintAllMove(){
 }
 
 BOARD_C BOARD_C::UndoMove (ExtMove to){
+	//placeholder
+	BOARD_C newBoard;
+	return newBoard;
 }

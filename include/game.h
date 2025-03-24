@@ -14,22 +14,30 @@
  * Timer, main engine, IO
  */
 
+
+enum gameMode {AIvsAI, HumanVsAi};
+
 class Game{
 private:
-	BOARD	INIT;
+	BOARD	initialPosition;
+	BOARD_C	initialBoard;
 	time_t 	now;
-    int 	Sig;
-	bool	UNLOCK;
-	Search	GAME;
+    int 	stopSig;
+	bool	unlock;
+	Search	game;
 	Search  alphaBeta;
-    Book    book;
+    Book    openingBook;
+	std::vector<ExtMove> gameMove;
 public:
     void	AIMove(Search *A, int *TotalTime, int level, std::pair<Move, int> *ANS);
-	void	InitBoard()	;
+	ExtMove	AIMove(Search *A, int *TotalTime, int level);
+	void	InitBoard();
+	void	CustomPosition(BOARD_C board);
+	void	CustomPositionFromFenString(std::string fenString);
 	void 	Init_engine();
 	void	DisplayMove(BOARD_C board, int MType);
 	void 	Display_Move(BOARD A, int MType);
-	void 	StartGame(void *threadArg);
+	void 	Start(void *threadArg);
 	void 	Timer();
 	void	SignalHandler();
 };

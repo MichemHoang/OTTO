@@ -33,7 +33,7 @@ typedef uint64_t HashKey;
  * 16 bit is needed to encode a move (2^6 = 64)
  * Bit 0-5 	 from
  * Bit 6-10	 to
- * 11-16 ( Move Type )
+ * 11-16 ( Move Type ) 2^4 = 16
  */ 
 
 const int 			MAX_MOVES = 120;	//Total number of moves (1 move = 2 plys)
@@ -44,6 +44,18 @@ const BitBoard 		EMPTY_BRD = 0x0000000000000000;
 const int			MAX_VALUE =	65536;
 const int 			MIN_VALUE =	-65536;
 const std::string	STANDARD  =	"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0";
+
+
+const std::string squares[64] = {
+	"A8", "B8", "C8", "D8", "E8", "F8", "G8", "H8",
+	"A7", "B7", "C7", "D7", "E7", "F7", "G7", "H7",
+	"A6", "B6", "C6", "D6", "E6", "F6", "G6", "H6",
+	"A5", "B5", "C5", "D5", "E5", "F5", "G5", "H5",
+	"A4", "B4", "C4", "D4", "E4", "F4", "G4", "H4",
+	"A3", "B3", "C3", "D3", "E3", "F3", "G3", "H3",
+	"A2", "B2", "C2", "D2", "E2", "F2", "G2", "H2",
+	"A1", "B1", "C1", "D1", "E1", "F1", "G1", "H1"
+};
 
 enum Signal {
 	TIMEOUT			=	-2,
@@ -93,6 +105,14 @@ struct ExtMove {
 	uint8_t getTo() const {return move >> 6 & 0x3f;}  //value of bit 6 to 10 
 	uint8_t getFrom() const {return (move) & 0x3f;}  // value of first 6 bit
     uint8_t getFlags() const {return (move >> 12) & 0x0f;} // value of bit 12 - 15
+	std::string toString(){
+		std::string final = "";
+		std::string	from = squares[move & 0x3F];
+		std::string to = squares[(move & 0xFC0) >> 6];
+		//std::string flags = std::string((move >> 12) & 0xF);
+		std::string quickValue = std::to_string(value);
+		return final;
+	}
 };
 
 #endif 

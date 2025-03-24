@@ -218,7 +218,7 @@ std::pair<Move, int> Search::AlphaBeta (BOARD A, int DEPTH, int Alpha, int Beta,
 	if (DEPTH > 1 && false) {
          std::cout	<< "RETURNING FROM DEPTH " << DEPTH <<  std::endl;
          std::cout	<< "Best Value	=	" << result.second <<  std::endl;
-         std::cout	<< "BestMove	=	"; DECODE::DecodeMove(result.first);
+         std::cout	<< "BestMove	=	";
 	}
     return result;
 }
@@ -411,9 +411,6 @@ ExtMove Search::SearchPosition(int maxDepth, bool iterative){
 			searchNode = 0;
 			optimalMove	= AlphaBeta(boardPosition, maxDepth - depthReduce, alpha, beta, maxDepth - depthReduce, boardHashValue, false);
 			TRANS_TABLE.UpdateTable();
-			std::cout << "Optimal move = ";
-			DECODE::DecodeMove(optimalMove.move);
-			std::cout << "Optimal move score = " << optimalMove.searchValue << std::endl;
 			/*
 			if (depthReduce == 2)	{
 				std::cout	<< "Search node = " << GetSearchNode() << std::endl;
@@ -434,8 +431,6 @@ ExtMove Search::SearchPosition(int maxDepth, bool iterative){
 	}
 	TRANS_TABLE.UpdateTable();
 	moveTime = time(&now) - timer;
-    std::cout << "Move score = " << optimalMove.searchValue <<  std::endl;
-	DECODE::DecodeMove(optimalMove.move);
 	return optimalMove;
 }
 
@@ -477,8 +472,8 @@ std::pair<Move, int> Search::SearchPosition (int MAX_DEPTH){
 		TRANS_TABLE.UpdateTable();
 		std::cout	 << "Optimal move score = " << OPTIMAL_MOVE.second <<  std::endl;
 		if (depthReduce == 2)	{
-            std::cout	<< "Search node = " << GetSearchNode() <<  std::endl;
-			DECODE::DecodeMove(OPTIMAL_MOVE.first);
+            //std::cout	<< "Search node = " << GetSearchNode() <<  std::endl;
+			//DECODE::DecodeMove(OPTIMAL_MOVE.first);
 			int TimeLimit	=	time(&now) - Timer;
 			if (TimeLimit > 400) {
                 std::cout	<< "Exceed Time Limit\n";

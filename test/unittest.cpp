@@ -39,7 +39,10 @@ protected:
 
 TEST_F(BoardTest, GenerateMove) {
     std::vector<ExtMove> moveList;
+    std::vector<ExtMove> moveListMP;
     moveList = GENERATE::AllMoves(chessBoard, WHITE);
+    moveListMP = GENERATE::AllMoves_MP(chessBoard, WHITE);
+    std::cout << "EYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY" << moveListMP.size() << "\n";
     ASSERT_EQ(moveList.size(), 20);
 }
 

@@ -18,14 +18,18 @@
  */
 
 namespace GENERATE{
+//using pointer and arrays
 int AllMove		( struct BOARD A, ExtMove *MoveList, int Color );
 int CaptureMove	( struct BOARD A, ExtMove *MoveList, int Color);
 int QuietMove	( struct BOARD A, ExtMove *MoveList, int Color);
 
+//using vector::std
 std::vector<ExtMove> AllMoves(BOARD_C board, int side);
 std::vector<ExtMove> CaptureMoves(BOARD_C board, int side);
 std::vector<ExtMove> QuietMoves(BOARD_C board, int side);
 std::vector<ExtMove> SpecialMoves(BOARD_C board, int side);
+
+std::vector<ExtMove> AllMoves_MP(BOARD_C board, int side); //all moves using parallel
 
 BitBoard Picker	(int chooser, int pos, BitBoard OwnPieces, BitBoard EnemyPieces, int Color, BitBoard capture);
 BitBoard Pawn	(int position, BitBoard OwnPieces, BitBoard EnemyPieces, int Color, BitBoard cap);
@@ -42,8 +46,4 @@ BOARD MakeMove(BOARD initial, Move transformer);
 BOARD UndoMove(BOARD &inital, ExtMove to);
 }
 
-namespace DECODE{ 
-void DecodeMove	(ExtMove *A);
-void DecodeMove	(Move A);
-}
 #endif

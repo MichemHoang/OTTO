@@ -1,4 +1,5 @@
-cmake_minimum_required(VERSION 3.5)
+#At least 3.9 for easier integration with openMP
+cmake_minimum_required(VERSION 3.9)
 project(OTTO)
 
 # GoogleTest requires at least C++14
@@ -26,15 +27,22 @@ set(srcs
     src/zobristhash.cpp
 )
 
+find_package(OpenMP REQUIRED)
+
 set(INCLUDE_DIRS include )
 include_directories(${INCLUDE_DIRS})
 include(GoogleTest)
 
+# add_library(OTTO_library SHARED ${srcs})
+
 add_executable( OTTO src/main.cpp ${srcs})
-target_link_libraries( OTTO ${OpenCV_LIBS} pthread)
+target_link_libraries( OTTO pthread OpenMP::OpenMP_CXX)
 
 add_executable( OTTO_test test/unittest.cpp ${srcs})
-target_link_libraries( OTTO_test gtest gtest_main)
+target_link_libraries( OTTO_test gtest gtest_main OpenMP::OpenMP_CXX)
+
+add_executable( OTTO_benchmark test/benchmark.cpp ${srcs})
+target_link_libraries( OTTO_benchmark OpenMP::OpenMP_CXX)
 
 gtest_discover_tests(OTTO_test)
 
