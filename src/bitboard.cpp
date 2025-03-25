@@ -170,10 +170,10 @@ void PrintBitBoard ( BitBoard A ){
         else std::cout	<< ".  ";
         if ( (i+1) % 8 == 0 )	std::cout << std::endl;
 	}
-    std::cout	<< "-------------------------------\n";
+    std::cout << "-------------------------------\n";
 }
 
-//pop the least significant bit
+//pop the least significant bit, return position of the Lsb
 int BitPop ( BitBoard &board ){
 	if ( board	==	0 ) return -1;
 	int pos	= LSBit(board);
@@ -181,10 +181,10 @@ int BitPop ( BitBoard &board ){
 	return pos;
 }
 
-//pop the most significant bit
+//pop the most significant bit, return position of the Msb
 int BitPopR	( BitBoard &board ){
 	if ( board	==	0 ) return -1;
-	int pos		=	MSBit(board);
+	int pos	= MSBit(board);
 	board ^= (BIT1 >> ( 63 - pos ) );
 	return ( 63 - pos );
 }
@@ -238,18 +238,18 @@ void Mask	(){
 	//Generate moves for king
 	for (int i = 0; i < 64; i++){
 		temp	=	BIT1	>> i;
-		if ( i % 8 != 7 )			MASK::KMask[i]	|=	( temp >> 1 | temp << 7 | temp >> 9);
-		if ( i % 8 != 0 )			MASK::KMask[i]	|=	( temp << 1 | temp << 9 | temp >> 7);
+		if ( i % 8 != 7 ) MASK::KMask[i]	|=	( temp >> 1 | temp << 7 | temp >> 9);
+		if ( i % 8 != 0 ) MASK::KMask[i]	|=	( temp << 1 | temp << 9 | temp >> 7);
 		MASK::KMask[i]	|=	temp >> 8;
 		MASK::KMask[i]	|=	temp << 8;
 	}
 	//Generate moves for Knight
 	for (int i = 0; i < 64; i++){
 		temp	=	BIT1	>> i;
-		if ( i % 8 < 7 )			MASK::NMask[i] |= ( temp << 15 | temp >> 17 );
-        if ( i % 8 < 6 ) 			MASK::NMask[i] |= ( temp << 6  | temp >> 10 );
-		if ( i % 8 > 0 )			MASK::NMask[i] |= ( temp << 17 | temp >> 15 );
-		if ( i % 8 > 1 )			MASK::NMask[i] |= ( temp << 10 | temp >> 6  );
+		if ( i % 8 < 7 ) MASK::NMask[i] |= ( temp << 15 | temp >> 17 );
+        if ( i % 8 < 6 ) MASK::NMask[i] |= ( temp << 6  | temp >> 10 );
+		if ( i % 8 > 0 ) MASK::NMask[i] |= ( temp << 17 | temp >> 15 );
+		if ( i % 8 > 1 ) MASK::NMask[i] |= ( temp << 10 | temp >> 6  );
 	}
 	//Generate moves for Rook { 6 = S, 2 = N, 4 = E, 0 = W } 
 	for (int i = 0; i < 64; i++){
@@ -264,7 +264,7 @@ void Mask	(){
 		for (int j 	=	i-9; j >=0 ; j-=9)	{	AttackRay[1][i]	|=	( BIT1 >> j );	if (j%8==0 || j%8==7) break; MASK::BMask[i]	|=	( BIT1 >> j ); }
 		for (int j	=	i+7; j < 64; j+=7)	{	AttackRay[7][i]	|=	( BIT1 >> j );	if (j%8==0 || j%8==7) break; MASK::BMask[i]	|=	( BIT1 >> j ); }
 		for (int j	=	i-7; j >=0 ; j-=7 )	{	AttackRay[3][i]	|=	( BIT1 >> j );	if (j%8==0 || j%8==7) break; MASK::BMask[i]	|=	( BIT1 >> j ); }
-		MASK::BMask[i]	&=		~Edges;		
+		MASK::BMask[i] &= ~Edges;		
 		
 	}
 }
@@ -343,7 +343,7 @@ int	Char_To_int	(char Mx, int ii){
 
 namespace FEN_Op{
 //Reading FEN_String from a string and convert into Board type
-void	READ_FEN(std::string FEN_STRING, BOARD *A) {
+void READ_FEN(std::string FEN_STRING, BOARD *A) {
 	int BrdIter	=	0;
     A->CurrentBoard[0]	=	0;
     A->CurrentBoard[1]	=	0;

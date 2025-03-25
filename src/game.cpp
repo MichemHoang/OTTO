@@ -1,31 +1,50 @@
 #include "game.h"
 
 void Game::InitBoard()				{
-    FEN_Op::READ_FEN(STANDARD, &INIT);
-	BitOp::getBoardInfo(INIT);
+    FEN_Op::READ_FEN("4rb2/3qrk2/1p1p1n2/7p/P2P4/4R2P/1BQN1P2/1K4R1 w - - 3 39", &initialPosition);
+	//FEN_Op::READ_FEN(STANDARD, &initialPosition);
+	BitOp::getBoardInfo(initialPosition);
 }
 
 void Game::Init_engine(){
-    std::cout	<< sizeof(HashEntry) << std::endl;
+    std::cout << sizeof(HashEntry) << std::endl;
 	INITIALIZE::Mask();
 	INITIALIZE::MoveData();
     InitZoBrist(true);
 	InitBoard();
-    book.Init();
-    Sig	=	BEGIN_SEARCH;
-	UNLOCK	=	false;
+    openingBook.Init();
+    stopSig	= BEGIN_SEARCH;
+	unlock = false;
+}
+
+void Game::DisplayMove(BOARD_C board, int MType){
+	std::vector<ExtMove> moveList;
+	switch (MType){
+		case (0):	moveList = GENERATE::AllMoves(board, board.Side_to_move); break;
+		case (1):	moveList = GENERATE::CaptureMoves(board, board.Side_to_move); 
+                    std::cout <<"Gen Capture\n";
+                    std::cout << "Capture list size = " << moveList.size() << std::endl;
+					break;
+		case (2):	moveList = GENERATE::QuietMoves(board, board.Side_to_move); 
+                    std::cout <<"Gen Quiet\n";
+                    std::cout << "Quiet list size = " << moveList.size() << std::endl;
+					break;	
+	}
+	for (int t = 0; t < moveList.size(); t++){
+        std::cout << t << ": ";
+	}
 }
 
 void Game::Display_Move(BOARD A, int MType){
 	ExtMove ok[MAX_MOVES];
 	int size;
 	switch (MType){
-		case (0):	size=	GENERATE::AllMove(A, ok, A.Side_to_move); break;
-		case (1):	size=	GENERATE::CaptureMove(A, ok, A.Side_to_move); 
+		case (0):	size = GENERATE::AllMove(A, ok, A.Side_to_move); break;
+		case (1):	size = GENERATE::CaptureMove(A, ok, A.Side_to_move); 
                     std::cout <<"Gen Capture\n";
                     std::cout << "size = " << size << std::endl;
 					break;
-		case (2):	size=	GENERATE::QuietMove(A, ok, A.Side_to_move); 
+		case (2):	size = GENERATE::QuietMove(A, ok, A.Side_to_move); 
                     std::cout <<"Gen Quiet\n";
                     std::cout << "size = " << size << std::endl;
 					break;
@@ -33,24 +52,24 @@ void Game::Display_Move(BOARD A, int MType){
 	ExtMove*lo	=	ok;
 	for (int t = 0; t < size; t++){
         std::cout	<< t << ": ";
-		DECODE::DecodeMove(lo++);
 	}
 }
 
+//this isnt safe
 void Game::Timer(){
-	bool	Stop = false;
+	bool Stop = false;
 	int SearchTime;
 	int startTime;
     std::string line;
-	while (!UNLOCK){
-        switch (Sig){
+	while (!unlock){
+        switch (stopSig){
 		case BEGIN_SEARCH:
 			startTime = time(&now);
-            Sig	=	SEARCHING;
+            stopSig	=	SEARCHING;
 			break;
 		case SHOWTIME:
             std::cout	<< "SearchTime so far: " << SearchTime << std::endl;
-            Sig	=	SEARCHING;
+            stopSig	=	SEARCHING;
 			break;
 		case TIMEOUT:
 			Stop = true;
@@ -61,9 +80,9 @@ void Game::Timer(){
 		if (SearchTime > 5000 || Stop) {
             std::cout	<< "Time Out";
 			SearchTime	=	0;
-			GAME.TimeOut(true);
-            Sig	=	WAITING;
-            while (Sig == WAITING){}
+			game.TimeOut(true);
+            stopSig	=	WAITING;
+            while (stopSig == WAITING){}
 			startTime = time(&now);
 			Stop = false;
 		}
@@ -72,95 +91,95 @@ void Game::Timer(){
 
 void Game::AIMove(Search *A, int *TotalTime, int level, std::pair<Move, int> *ANS){
 	*ANS	=	A->SearchPosition(level);
-    std::cout	<< "Time = " << A->getTime() << std::endl;
-	*TotalTime	+=	A->getTime();
-	Display_Move(INIT, 0);
-	DECODE::DecodeMove(ANS->first);
-	INIT	=	MOVE::MakeMove(INIT, ANS->first);
-	BitOp::getBoardInfo(INIT);
-	A->setPosition(INIT);
-    std::cout	<< "Database size = " << GAME.getDatabaseSize() << std::endl;
-    std::cout	<< "FEN std::string = " << FEN_Op::toFEN(INIT) << std::endl;
-    std::cout	<< "SearchNode = " << GAME.getSearchNode() << std::endl;
+    std::cout	<< "Time = " << A->GetTime() << std::endl;
+	*TotalTime	+=	A->GetTime();
+	Display_Move(initialPosition, 0);
+	initialPosition	= MOVE::MakeMove(initialPosition, ANS->first);
+	BitOp::getBoardInfo(initialPosition);
+	A->SetPosition(initialPosition);
+    std::cout	<< "Database size = " << game.GetDatabaseSize() << std::endl;
+    std::cout	<< "FEN std::string = " << FEN_Op::toFEN(initialPosition) << std::endl;
+    std::cout	<< "SearchNode = " << game.GetSearchNode() << std::endl;
 }
 
-void Game::StartGame(void * GameArg){
-	int		level, AIvsAI, MaxMove, Side;
-	int		*PTR;
-	int		TotalTime		= 0;
-	GAME.setTableSize(30000000);
-	GAME.setPosition(INIT);
-    PTR			=	(int *) GameArg;
-	level		=	PTR[0];	MaxMove		=	PTR[1];
-	AIvsAI		=	PTR[2];	Side		=	PTR[3];
-    Sig	=	BEGIN_SEARCH;
-    std::pair<Move, int>	RES;
+void Game::Start(void * GameArg){
+	int	level, AIvsAI, MaxMove, Side;
+	int	*PTR;
+	int	TotalTime = 0;
+	game.SetTableSize(30000000);
+	game.SetPosition(initialPosition);
+    PTR	= (int *) GameArg;
+	level =	PTR[0];	MaxMove = PTR[1];
+	AIvsAI = PTR[2]; Side = PTR[3];
+    stopSig	= BEGIN_SEARCH;
+    std::pair<Move, int> RES;
 	if (AIvsAI){
 		for (int i = 0; i < MaxMove * 2 - 1; i++){//MaxMove * 2
-			AIMove(&GAME, &TotalTime, level, &RES);
+			AIMove(&game, &TotalTime, level, &RES);
             if (RES.second > 9666)		{std::cout	<< "Player 1 win\n"; 	break;}
             if (RES.second < -9666)		{std::cout	<< "Player 2 win\n";	break;}
             std::cout	<< "AverageTime	= " << (double)(TotalTime)/(double)(i + 1) << std::endl;
 			//RESET SEARCH TIMER
-            Sig = BEGIN_SEARCH;
-			GAME.TimeOut(false);
+            stopSig = BEGIN_SEARCH;
+			game.TimeOut(false);
 			sleep(1);	//CPU relief
 		}
 	} else
 		for (int i = 0; i < MaxMove * 2 - 1; i++){
-			if (INIT.Side_to_move == Side){
+			if (initialPosition.Side_to_move == Side){
 				bool FoundOpening = false;
-				if (INIT.No_Ply <=10){
-					Key Hash = GetKey(INIT);
+				if (initialPosition.No_Ply <=10){
+					Key Hash = GetKey(initialPosition);
 					Move Koas;
-                    if (book.FindOpening(Hash, &Koas)) {
-						DECODE::DecodeMove(Koas);
-						INIT	=	MOVE::MakeMove(INIT, Koas);
-						BitOp::getBoardInfo(INIT);
+                    if (openingBook.FindOpening(Hash, &Koas)) {
+						//
+						initialPosition	=	MOVE::MakeMove(initialPosition, Koas);
+						BitOp::getBoardInfo(initialPosition);
 						FoundOpening = true;	
-						GAME.setPosition(INIT);
+						game.SetPosition(initialPosition);
 					}
 				} 
 				if (FoundOpening){}
 				else {
-					AIMove(&GAME, &TotalTime, level, &RES);
+					AIMove(&game, &TotalTime, level, &RES);
                     if (RES.second > 9666)		{std::cout	<< "Player 1 win\n"; 	break;}
                     if (RES.second < -9666)		{std::cout	<< "Player 2 win\n";	break;}
                     std::cout	<< "AverageTime	= " << (double)(TotalTime)/(double)(i/2 + 1) << std::endl;
 				}
 			}  else {
-				Display_Move (INIT, 0);
+				Display_Move (initialPosition, 0);
 				ExtMove ok[MAX_MOVES];
-				int		PlayerMove;
-				GENERATE::AllMove(INIT, ok, INIT.Side_to_move);
+				int	PlayerMove;
+				GENERATE::AllMove(initialPosition, ok, initialPosition.Side_to_move);
                 std::cout	<< "Your Move " << std::endl;
                 std::cin		>> PlayerMove;
-                DECODE::DecodeMove(ok[PlayerMove].move); std::cout	<< (int)ok[PlayerMove].move << std::endl;
+                //
+				std::cout	<< (int)ok[PlayerMove].move << std::endl;
 				if (PlayerMove < 0) {
-                    Sig = SEARCHING;
+                    stopSig = SEARCHING;
 					break;
 				}
-				INIT	=	MOVE::MakeMove(INIT, ok[PlayerMove]);
-				BitOp::getBoardInfo(INIT);	
-                std::cout	<< "FEN std::string = " << FEN_Op::toFEN(INIT) << std::endl;
-				GAME.setPosition(INIT);
+				initialPosition	=	MOVE::MakeMove(initialPosition, ok[PlayerMove]);
+				BitOp::getBoardInfo(initialPosition);	
+                std::cout	<< "FEN std::string = " << FEN_Op::toFEN(initialPosition) << std::endl;
+				game.SetPosition(initialPosition);
 				//RESET SEARCH TIMER
-				GAME.TimeOut(false);
-                Sig = BEGIN_SEARCH;
+				game.TimeOut(false);
+                stopSig = BEGIN_SEARCH;
 			}	
 		}
-	UNLOCK	=	true;
+	unlock	=	true;
     std::cout	<< "Total Time = " 		<< TotalTime << std::endl;
-    std::cout	<< "Evaluate Final Board : " << EVALUATION::Evaluate(INIT, INIT.Side_to_move) << std::endl;
+    std::cout	<< "Evaluate Final Board : " << EVALUATION::Evaluate(initialPosition, initialPosition.Side_to_move) << std::endl;
     std::cout	<< "Endgame (Press sth)\n";
 }
 
 void Game::SignalHandler(){
 	int UserInput;
-	while (!UNLOCK && false){
+	while (!unlock && false){
         std::cin >> UserInput;
 		if (UserInput < 3 && UserInput > -3)
-            Sig	=	UserInput;
+            stopSig	=	UserInput;
 	}
 }
 

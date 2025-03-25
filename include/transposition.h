@@ -14,10 +14,12 @@
  * Flag is used to recognize old node
  */
 
+
 #define	EXACT 		1
 #define LOWERBOUND 	2
 #define UPPERBOUND	3
- 
+
+
 struct HashEntry{
 	bool		Flag;			//Old node
 	uint64_t	HashValue;		
@@ -33,16 +35,16 @@ class HASH_TABLE{
 		int Size;
 		std::unordered_map<int, T> HashTable;
 	public:
-		HASH_TABLE		()	;
-		HASH_TABLE		(int A)	;
-		void		echo();
-		void		addEntry(HKey ZobristHash, T newEntry);
-		int			HashFunction( HKey Hashkey)	;
-		void		setSize		( int AS );
-		int			getSize		(	)	;
-		bool		FindEntry	( HKey Hashkey, T *Result)  ;
-		void		UpdateTable	( )	;	// Updating table after every Move so that it wont be filled with old useless entry;
-		void		PrintDatabase( );	//just for testing. Aint nobody got time to read 10000000000 entry.
+		HASH_TABLE();
+		HASH_TABLE(int A);
+		void	echo();
+		void	addEntry(HKey ZobristHash, T newEntry);
+		int		HashFunction( HKey Hashkey)	;
+		void	SetSize		( int AS );
+		int		getSize		(	)	;
+		bool	FindEntry	( HKey Hashkey, T *Result)  ;
+		void	UpdateTable	( )	;	// Updating table after every Move so that it wont be filled with old useless entry;
+		void	PrintDatabase( );	//just for testing. Aint nobody got time to read 10000000000 entry.
 };
 
 ///Generic temlate methods implementation
@@ -53,7 +55,7 @@ template <typename T, typename HKey>
 HASH_TABLE<T, HKey>::HASH_TABLE(int A) { Size = A; }
 
 template <typename T, typename HKey> 
-void HASH_TABLE<T, HKey>::setSize (int AS) {	Size = AS;	};
+void HASH_TABLE<T, HKey>::SetSize (int AS) {	Size = AS;	};
 
 template <typename T, typename HKey> 
 int	HASH_TABLE<T, HKey>::getSize() {return HashTable.size(); };
@@ -70,7 +72,7 @@ void HASH_TABLE<T, HKey>::PrintDatabase(){	}
 ///*
 
 template <> //inline
-inline void	HASH_TABLE<HashEntry, Key>::UpdateTable		( ){
+inline void	HASH_TABLE<HashEntry, Key>::UpdateTable	( ){
 	for (auto iter	=	HashTable.begin(); iter != HashTable.end();  iter++)	{
 		iter->second.Flag	=	true;
 	}

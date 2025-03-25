@@ -4,6 +4,8 @@
 #include "mt64.h"
 #include "typedefs.h"
 #include "bitboard.h"
+#include "board.h"
+
 #include <stdint.h>
 #include <stdlib.h>     /* srand, rand */
 #include <algorithm>    // std::sort
@@ -12,10 +14,14 @@ BitString	RandomGenerator();
 
 BitString	GetKey(BOARD A);
 
+BitString	GetKey(BOARD_C board);
+
 void		InitZoBrist(bool On);
 
 BitString	UpdateKey(BitString OldKey, Move A, BOARD S);
 
-BitString	getHash(BOARD A);
+BitString	UpdateKey(BitString oldKey, Move newMove, BOARD_C board);
+
+BitString	getHash(BOARD_C board);
 
 #endif
