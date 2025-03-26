@@ -33,16 +33,25 @@ set(INCLUDE_DIRS include )
 include_directories(${INCLUDE_DIRS})
 include(GoogleTest)
 
-# add_library(OTTO_library SHARED ${srcs})
+add_library(OTTO SHARED ${srcs})
 
-add_executable( OTTO src/main.cpp ${srcs})
+target_include_directories(OTTO PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
 target_link_libraries( OTTO pthread OpenMP::OpenMP_CXX)
 
-add_executable( OTTO_test test/unittest.cpp ${srcs})
-target_link_libraries( OTTO_test gtest gtest_main OpenMP::OpenMP_CXX)
+# Add the OTTO_main executable -- makeshift game
+add_executable(OTTO_main src/main.cpp)
+target_link_libraries(OTTO_main PRIVATE OTTO)
 
-add_executable( OTTO_benchmark test/benchmark.cpp ${srcs})
-target_link_libraries( OTTO_benchmark OpenMP::OpenMP_CXX)
+# Add the OTTO_test executable
+add_executable(OTTO_test test/unittest.cpp)
+target_link_libraries(OTTO_test PRIVATE OTTO GTest::gtest GTest::gtest_main)
+
+# Add the OTTO_benchmark executable
+add_executable(OTTO_benchmark test/benchmark.cpp)
+target_link_libraries(OTTO_benchmark PRIVATE OTTO OpenMP::OpenMP_CXX)
 
 gtest_discover_tests(OTTO_test)
 
