@@ -140,15 +140,15 @@ int	Evaluate (BOARD A, int side){
 	if (BitOp::PopsCount(Bishop[1])	==	2) B_PAIR -= 15;
 	
 	//DOUBLE PAWN
-	Pawn[0]	=	A.Pieces[0]; Pawn[1]	=	A.Pieces[6];
+	Pawn[0] = A.Pieces[0]; Pawn[1] = A.Pieces[6];
 	for (int file = 0; file < 8; file++){
 		if (BitOp::PopsCount(FILES[file]	& Pawn[0]) > 1)	BLK_PWN -= 	15;
 		if (BitOp::PopsCount(FILES[file]	& Pawn[1]) > 1)	BLK_PWN	+=	15;
 	}
-	side	==	BLACK ? BLK_PWN *= -1 : BLK_PWN *= 	1;
+	side == BLACK ? BLK_PWN *= -1 : BLK_PWN *= 	1;
 	
 	//PIECE SQR VALUE 
-	Pawn[0]	=	A.Pieces[wP]; Pawn[1]	=	A.Pieces[bP];
+	Pawn[0]	= A.Pieces[wP]; Pawn[1]	=	A.Pieces[bP];
 	while (Pawn[0] != 0)	PSQR_VALUE	+=	PawnTable[BitOp::BitPop(Pawn[0])];
 	while (Pawn[1] != 0)	PSQR_VALUE	-=	PawnTable[63 - BitOp::BitPop(Pawn[1])];
 	while (Bishop[0] != 0)	PSQR_VALUE	+=	BishopTable[BitOp::BitPop(Bishop[0])];
@@ -159,47 +159,52 @@ int	Evaluate (BOARD A, int side){
 	if (A.No_Ply >= 15) PSQR_VALUE	*= 0.2;
 	else   				PSQR_VALUE	*= 0.3;
 	
-	//KING SAFETY
 	Pawn[0]	=	A.Pieces[wP]; Pawn[1]	=	A.Pieces[bP];
 	int a = 0, b = 0, d, e;
-	int KingPos	=	BitOp::LSBit(A.Pieces[wK]);
-	if ((AttackRay[2][KingPos] & Pawn[0]) != 0) a += 90;
-	if (KingPos%8 != 7) {if ((AttackRay[2][KingPos + 1] & Pawn[0]) != 0) a += 60;}	else a += 40;
-	if (KingPos%8 != 0) {if ((AttackRay[2][KingPos - 1] & Pawn[0]) != 0) a += 60;}	else a += 40;
-	if (A.Pieces[bQ]	==	0) a	*= 0.8;
-	d =  BitOp::PopsCount(MASK::KMask[KingPos] & A.CurrentBoard[0]) * 30;
-	
+	int KingPos	= BitOp::LSBit(A.Pieces[wK]);
+	if (KingPos != 64){
+		if ((AttackRay[2][KingPos] & Pawn[0]) != 0) a += 90;
+		if (KingPos%8 != 7) {if ((AttackRay[2][KingPos + 1] & Pawn[0]) != 0) a += 60;}	else a += 40;
+		if (KingPos%8 != 0) {if ((AttackRay[2][KingPos - 1] & Pawn[0]) != 0) a += 60;}	else a += 40;
+		if (A.Pieces[bQ]	==	0) a	*= 0.8;
+		d =  BitOp::PopsCount(MASK::KMask[KingPos] & A.CurrentBoard[0]) * 30;
+	}
 	KingPos	=	BitOp::LSBit(A.Pieces[bK]);
-	if ((AttackRay[6][KingPos] & Pawn[1]) != 0) b -= 90;
-	if (KingPos%8 != 7) {if ((AttackRay[6][KingPos + 1] & Pawn[1]) != 0) b -= 60;}	else b -= 40;
-	if (KingPos%8 != 0) {if ((AttackRay[6][KingPos - 1] & Pawn[1]) != 0) b -= 60;}	else b -= 40;
-	if (A.Pieces[wQ]	==	0) b	*= 0.8;
-	e =  BitOp::PopsCount(MASK::KMask[KingPos] & A.CurrentBoard[1]) * -30;
-	
+		if (KingPos != 64){
+		if ((AttackRay[6][KingPos] & Pawn[1]) != 0) b -= 90;
+		if (KingPos%8 != 7) {if ((AttackRay[6][KingPos + 1] & Pawn[1]) != 0) b -= 60;}	else b -= 40;
+		if (KingPos%8 != 0) {if ((AttackRay[6][KingPos - 1] & Pawn[1]) != 0) b -= 60;}	else b -= 40;
+		if (A.Pieces[wQ]	==	0) b	*= 0.8;
+		e =  BitOp::PopsCount(MASK::KMask[KingPos] & A.CurrentBoard[1]) * -30;
+	}
 	KING_SAFETY	=	a + b;
 	if (A.No_Ply > 14) KING_SAFETY+= (d+e);
 	if (A.No_Ply < 12) KING_SAFETY*= 0.3;
 	if (A.No_Ply > 70) KING_SAFETY*= 0.7;
-	
+
 	//ROOK_ON_OPEN_FILE
 	if (A.No_Ply > 30){
-		int RookPos		=	BitOp::LSBit(A.Pieces[wR]);
-		BitBoard Mobi	=	GENERATE::Rook(RookPos, A.CurrentBoard[WHITE], A.CurrentBoard[BLACK]);
-		if ((Mobi & FILES[RookPos%8] & A.Pieces[wP] & A.Pieces[bP]) == 0) 	MOBILITY	+= 50;	
-		else if ((Mobi & FILES[RookPos%8] & A.Pieces[wP]) == 0)				MOBILITY	+= 25;	
-		
+		int RookPos	= BitOp::LSBit(A.Pieces[wR]);
+		if (RookPos!=64){
+			BitBoard Mobi	=	GENERATE::Rook(RookPos, A.CurrentBoard[WHITE], A.CurrentBoard[BLACK]);
+			if ((Mobi & FILES[RookPos%8] & A.Pieces[wP] & A.Pieces[bP]) == 0) 	MOBILITY	+= 50;	
+			else if ((Mobi & FILES[RookPos%8] & A.Pieces[wP]) == 0)				MOBILITY	+= 25;	
+		}
 		RookPos	=	BitOp::LSBit(A.Pieces[bR]);
-		Mobi	=	GENERATE::Rook(RookPos, A.CurrentBoard[BLACK], A.CurrentBoard[WHITE]);
-		if ((Mobi & FILES[RookPos%8] & A.Pieces[wP] & A.Pieces[bP]) == 0) 	MOBILITY	-= 50;	
-		else if ((Mobi & FILES[RookPos%8] & A.Pieces[bP]) == 0)				MOBILITY	-= 25;	
+		if (RookPos!=64){
+			BitBoard Mobi	=	GENERATE::Rook(RookPos, A.CurrentBoard[BLACK], A.CurrentBoard[WHITE]);
+			if ((Mobi & FILES[RookPos%8] & A.Pieces[wP] & A.Pieces[bP]) == 0) 	MOBILITY	-= 50;	
+			else if ((Mobi & FILES[RookPos%8] & A.Pieces[bP]) == 0)				MOBILITY	-= 25;	
+		}
 	}
+	
 	TOTAL_SCORE	=	MATERIAL_BALANCE + PAWN_STRUCTURE + CENTER_CONTROL + 
 					MOBILITY + CASTLING + KING_SAFETY + PSQR_VALUE + BLK_PWN;
-	side	==	BLACK ? TOTAL_SCORE *= -1 : TOTAL_SCORE *= 	1;
+	side == BLACK ? TOTAL_SCORE *= -1 : TOTAL_SCORE *= 	1;
 	return TOTAL_SCORE;
 }
 
-int	Evaluate (BOARD_C A, int side){
+int	EvaluateBoard (BOARD_C A, int side){
 	int MATERIAL_BALANCE	=	0;
 	int	PAWN_STRUCTURE		=	0;
 	int	CENTER_CONTROL		=	0;
@@ -210,16 +215,17 @@ int	Evaluate (BOARD_C A, int side){
 	int BLK_PWN				=	0;
 	int	B_PAIR				=	0;
 	int	TOTAL_SCORE			=	0;
-	BitBoard	Bishop[2];
-	BitBoard	Knight[2];
-	BitBoard	Pawn[2];
+	BitBoard Bishop[2];
+	BitBoard Knight[2];
+	BitBoard Pawn[2];
 	//MATERIAL BALANCE
-	for (int i = 0; i < 6; i++)	MATERIAL_BALANCE	+=	(BitOp::PopsCount (  A.Pieces[i] ) - BitOp::PopsCount ( A.Pieces[i + 6] )) * VALUE[i];
+	for (int i = 0; i < 6; i++)	MATERIAL_BALANCE += (BitOp::PopsCount (  A.Pieces[i] ) - BitOp::PopsCount ( A.Pieces[i + 6] )) * VALUE[i];
 	
 	//PAWN FORMATION
-	Pawn[0]	=	A.Pieces[wP]; Pawn[1]	=	A.Pieces[bP];
+	Pawn[0]	= A.Pieces[wP]; Pawn[1] = A.Pieces[bP];
 	for ( int i = 0; i < 2; i++)
-		while (Pawn[i] != 0 )	if ((MASK::PMask[i][BitOp::BitPop(Pawn[i])]	& A.Pieces[i*6]) != 0 ) PAWN_STRUCTURE	+=	25*(1 - 2*i);
+		while (Pawn[i] != 0 )	
+			if ((MASK::PMask[i][BitOp::BitPop(Pawn[i])]	& A.Pieces[i*6]) != 0 ) PAWN_STRUCTURE	+=	25*(1 - 2*i);
 	CENTER_CONTROL	=	40*(BitOp::PopsCount(A.CurrentBoard[WHITE] & CenterBonus) - BitOp::PopsCount(A.CurrentBoard[BLACK] & CenterBonus));
 	
 	//CASTLING
@@ -254,42 +260,48 @@ int	Evaluate (BOARD_C A, int side){
 	else   				PSQR_VALUE	*= 0.3;
 	
 	//KING SAFETY
-	Pawn[0]	=	A.Pieces[wP]; Pawn[1]	=	A.Pieces[bP];
-	int a = 0, b = 0, d, e;
-	int KingPos	=	BitOp::LSBit(A.Pieces[wK]);
-	if ((AttackRay[2][KingPos] & Pawn[0]) != 0) a += 90;
-	if (KingPos%8 != 7) {if ((AttackRay[2][KingPos + 1] & Pawn[0]) != 0) a += 60;}	else a += 40;
-	if (KingPos%8 != 0) {if ((AttackRay[2][KingPos - 1] & Pawn[0]) != 0) a += 60;}	else a += 40;
-	if (A.Pieces[bQ]	==	0) a	*= 0.8;
-	d =  BitOp::PopsCount(MASK::KMask[KingPos] & A.CurrentBoard[0]) * 30;
 	
+	Pawn[0]	= A.Pieces[wP]; Pawn[1]	= A.Pieces[bP];
+	int a = 0, b = 0, d = 0, e = 0;
+	int KingPos	= BitOp::LSBit(A.Pieces[wK]);
+	if (KingPos != 64){
+		if ((AttackRay[2][KingPos] & Pawn[0]) != 0) a += 90;
+		if (KingPos%8 != 7) {if ((AttackRay[2][KingPos + 1] & Pawn[0]) != 0) a += 60;}	else a += 40;
+		if (KingPos%8 != 0) {if ((AttackRay[2][KingPos - 1] & Pawn[0]) != 0) a += 60;}	else a += 40;
+		if (A.Pieces[bQ] == 0) a *= 0.8;
+		d = BitOp::PopsCount(MASK::KMask[KingPos] & A.CurrentBoard[0]) * 30;
+	}
 	KingPos	=	BitOp::LSBit(A.Pieces[bK]);
-	if ((AttackRay[6][KingPos] & Pawn[1]) != 0) b -= 90;
-	if (KingPos%8 != 7) {if ((AttackRay[6][KingPos + 1] & Pawn[1]) != 0) b -= 60;}	else b -= 40;
-	if (KingPos%8 != 0) {if ((AttackRay[6][KingPos - 1] & Pawn[1]) != 0) b -= 60;}	else b -= 40;
-	if (A.Pieces[wQ]	==	0) b	*= 0.8;
-	e =  BitOp::PopsCount(MASK::KMask[KingPos] & A.CurrentBoard[1]) * -30;
-	
-	KING_SAFETY	=	a + b;
+		if (KingPos != 64){
+		if ((AttackRay[6][KingPos] & Pawn[1]) != 0) b -= 90;
+		if (KingPos%8 != 7) {if ((AttackRay[6][KingPos + 1] & Pawn[1]) != 0) b -= 60;}	else b -= 40;
+		if (KingPos%8 != 0) {if ((AttackRay[6][KingPos - 1] & Pawn[1]) != 0) b -= 60;}	else b -= 40;
+		if (A.Pieces[wQ] == 0) b *= 0.8;
+		e = BitOp::PopsCount(MASK::KMask[KingPos] & A.CurrentBoard[1]) * -30;
+	}
+	KING_SAFETY	= a + b;
 	if (A.No_Ply > 14) KING_SAFETY+= (d+e);
 	if (A.No_Ply < 12) KING_SAFETY*= 0.3;
 	if (A.No_Ply > 70) KING_SAFETY*= 0.7;
-	
+
 	//ROOK_ON_OPEN_FILE
 	if (A.No_Ply > 30){
-		int RookPos		=	BitOp::LSBit(A.Pieces[wR]);
-		BitBoard Mobi	=	GENERATE::Rook(RookPos, A.CurrentBoard[WHITE], A.CurrentBoard[BLACK]);
-		if ((Mobi & FILES[RookPos%8] & A.Pieces[wP] & A.Pieces[bP]) == 0) 	MOBILITY	+= 50;	
-		else if ((Mobi & FILES[RookPos%8] & A.Pieces[wP]) == 0)				MOBILITY	+= 25;	
-		
-		RookPos	=	BitOp::LSBit(A.Pieces[bR]);
-		Mobi	=	GENERATE::Rook(RookPos, A.CurrentBoard[BLACK], A.CurrentBoard[WHITE]);
-		if ((Mobi & FILES[RookPos%8] & A.Pieces[wP] & A.Pieces[bP]) == 0) 	MOBILITY	-= 50;	
-		else if ((Mobi & FILES[RookPos%8] & A.Pieces[bP]) == 0)				MOBILITY	-= 25;	
+		int RookPos	= BitOp::LSBit(A.Pieces[wR]);
+		if (RookPos!=64){
+			BitBoard Mobi = GENERATE::Rook(RookPos, A.CurrentBoard[WHITE], A.CurrentBoard[BLACK]);
+			if ((Mobi & FILES[RookPos%8] & A.Pieces[wP] & A.Pieces[bP]) == 0) 	MOBILITY	+= 50;	
+			else if ((Mobi & FILES[RookPos%8] & A.Pieces[wP]) == 0)				MOBILITY	+= 25;	
+		}
+		RookPos	= BitOp::LSBit(A.Pieces[bR]);
+		if (RookPos!=64){
+			BitBoard Mobi = GENERATE::Rook(RookPos, A.CurrentBoard[BLACK], A.CurrentBoard[WHITE]);
+			if ((Mobi & FILES[RookPos%8] & A.Pieces[wP] & A.Pieces[bP]) == 0) 	MOBILITY	-= 50;	
+			else if ((Mobi & FILES[RookPos%8] & A.Pieces[bP]) == 0)				MOBILITY	-= 25;	
+		}
 	}
 	TOTAL_SCORE	=	MATERIAL_BALANCE + PAWN_STRUCTURE + CENTER_CONTROL + 
 					MOBILITY + CASTLING + KING_SAFETY + PSQR_VALUE + BLK_PWN;
-	side	==	BLACK ? TOTAL_SCORE *= -1 : TOTAL_SCORE *= 	1;
+	side ==	BLACK ? TOTAL_SCORE *= -1 : TOTAL_SCORE *= 	1;
 	return TOTAL_SCORE;
 }
 
@@ -301,13 +313,13 @@ int LVA (int att_Sqr, BOARD_C A, int side){
 	BitBoard B;
 	int position = -1;
 	//Check for pawn attack
-	B	=	MASK::PMask[side^1][att_Sqr] & A.Pieces[wP + 6*(side)];
+	B =	MASK::PMask[side^1][att_Sqr] & A.Pieces[wP + 6*(side)];
 	while (B!=0){
 		position = BitOp::BitPop(B);
 		return position;
 	}
 	//Check for Knight attack
-	B	=	MASK::NMask[att_Sqr] & A.Pieces[wN + 6 * side];
+	B =	MASK::NMask[att_Sqr] & A.Pieces[wN + 6 * side];
 	while (B!=0){
 		position = BitOp::BitPop(B);
 		return position;
@@ -318,7 +330,7 @@ int LVA (int att_Sqr, BOARD_C A, int side){
 		B	=	AttackRay[RayLookUp[i]][att_Sqr] & SlidingPiece ;
 		while (B!=0){
 			if (i < 4)	{
-				RayLookUp[i]	<	4? position	=	BitOp::BitPopR(B) : position	=	BitOp::BitPop(B);
+				RayLookUp[i] < 4? position	= BitOp::BitPopR(B) : position	=	BitOp::BitPop(B);
 				if (A.Sq[position]	==	(wB + 6 * side ))	return position;
 				if (A.Sq[position]	==	(wQ + 6 * side )) 	QPosition	=	position;
 			}	else {
@@ -348,7 +360,7 @@ int LVA(int att_Sqr, BOARD A, int side){
 	}
 	
 	//Check for Knight attack
-	B	=	MASK::NMask[att_Sqr] & A.Pieces[wN	+	6 * side];
+	B = MASK::NMask[att_Sqr] & A.Pieces[wN	+	6 * side];
 	while (B!=0){
 		position = BitOp::BitPop(B);
 		return position;
@@ -438,7 +450,7 @@ int	SEEA(int To, BOARD_C A, int from){
 		A.CurrentBoard[A.Side_to_move]			^=	 ( ( BIT1 >> Attacker ) | (bboardTo) );
 		A.CurrentBoard[A.Side_to_move ^ 1]		&=	 ~( bboardTo );
 		A.Sq[To]		=	A.Sq[Attacker];
-		A.Sq[Attacker]	=	12; //12 mean empty sqr i think
+		A.Sq[Attacker]	=	12; //12 mean empty sqr
 	} while (1);
 	while (depth > 0)	{
 		if (-gain[depth-1] <= gain[depth]) gain[depth-1] = -gain[depth];
@@ -466,13 +478,12 @@ int	DynamicEval	(BOARD A, int Alpha, int Beta){
         if (evaluation 	>=	Beta) 	{	return Beta;	}
         if (evaluation  >=	Alpha) 	{	Alpha 	=	evaluation;	}
     }
-	free (iter);
     return Alpha;
 }
 
 int	DynamicEval	(BOARD_C A, int Alpha, int Beta){
 	std::vector<ExtMove>  CaptureList;
-    int evaluation	=	EVALUATION::Evaluate(A, A.Side_to_move);
+    int evaluation	=	EVALUATION::EvaluateBoard(A, A.Side_to_move);
     if (evaluation 	>=	Beta) 	{	return Beta;	}
     if (evaluation  >=	Alpha) 	{	Alpha 	=	evaluation;	}
     CaptureList = GENERATE::CaptureMoves(A, A.Side_to_move);

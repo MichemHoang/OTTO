@@ -13,8 +13,8 @@
 
 
 /*
- * 1		0000			quiet moves
- * 2		0001			double pawn push
+ * 1	0000    quiet moves
+ * 2	0001	double pawn push
  */
 
 namespace GENERATE{
@@ -28,8 +28,6 @@ std::vector<ExtMove> AllMoves(BOARD_C board, int side);
 std::vector<ExtMove> CaptureMoves(BOARD_C board, int side);
 std::vector<ExtMove> QuietMoves(BOARD_C board, int side);
 std::vector<ExtMove> SpecialMoves(BOARD_C board, int side);
-
-std::vector<ExtMove> AllMoves_MP(BOARD_C board, int side); //all moves using parallel
 
 BitBoard Picker	(int chooser, int pos, BitBoard OwnPieces, BitBoard EnemyPieces, int Color, BitBoard capture);
 BitBoard Pawn	(int position, BitBoard OwnPieces, BitBoard EnemyPieces, int Color, BitBoard cap);

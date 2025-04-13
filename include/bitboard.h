@@ -49,24 +49,24 @@ extern BitBoard *BishopMoveDatabase[64];
 extern BitBoard AttackRay[8][64];
 
 struct BOARD{
-	BitBoard	Pieces[13];
-	BitBoard	CurrentBoard[2];
-    uint8_t		Sq[64];
+	BitBoard Pieces[13];
+	BitBoard CurrentBoard[2];
+    uint8_t	Sq[64];
 
 	/* 0000 0000 (Q+K)check * (B+W) is possible
 	 * 1000 0000 BQ check is not possible
 	 * 0100 0000 BK check is not possible
 	 * 0010 0000 Already castle 
 	 */
-	uint8_t		Castling_check;
-    uint8_t		No_Ply; //number of Ply
-	uint8_t		Side_to_move;
-	Move		PreviousMove;
+	uint8_t Castling_check;
+    uint8_t	No_Ply; //number of Ply
+	uint8_t	Side_to_move;
+	Move PreviousMove;
 };
 
 //Bit Operation
 namespace BitOp{
-bool 	isSubsetOf		( BitBoard a, BitBoard b );
+bool	isSubsetOf		( BitBoard a, BitBoard b );
 int		BitPop			( BitBoard &A );
 int 	LSBit			( BitBoard A );
 int 	MSBit			( BitBoard A ); 
@@ -83,8 +83,9 @@ void 	Mask	();
 }
 
 namespace FEN_Op{
-void	READ_FEN(std::string FEN_STRING, BOARD *A);
+void READ_FEN(std::string FEN_STRING, BOARD *A);
 std::string	toFEN(BOARD A);
+bool IsValidFEN(std::string FEN_STRING);
 }
 
 #endif

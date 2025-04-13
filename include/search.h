@@ -22,10 +22,9 @@ private:
 	bool		shallowSearch;
     int 		FINAL_DEPT;
 public:
-	Search	();
+	Search();
 	void		GetBranchFactor();
 	void		TimeOut (bool FIN);
-	int			GetTime();
 	void 		SetPosition	(BOARD Pos);	
 	void 		SetPosition	(BOARD_C Pos);
 	void 		SetTableSize	(int   Size);
@@ -33,10 +32,10 @@ public:
 	int 		GetDatabaseSize	();
 	int			QuiesceneSearch	(BOARD A, int Alpha, int Beta);
 	int			QuiesceneSearch	(BOARD_C A, int Alpha, int Beta);
-    std::pair<Move, int>	AlphaBeta (BOARD A, int DEPTH, int Alpha, int Beta, int FINAL_DEPT, Key ZobristKey, bool LMR);
-	std::pair<Move, int>	SearchPosition (int MAX_DEPTH);
+    std::pair<Move, int> AlphaBeta (BOARD A, int DEPTH, int Alpha, int Beta, int FINAL_DEPT, Key ZobristKey, bool LMR);
+	std::pair<Move, int> IterativeDeepening (int MAX_DEPTH);
 	ExtMove	AlphaBeta (BOARD_C A, int DEPTH, int Alpha, int Beta, int FINAL_DEPT, Key ZobristKey, bool LMR);
-    ExtMove SearchPosition(int maxDept, bool iterative);
+    ExtMove IterativeDeepening(int maxDept, bool iterative);
 };
 
 #endif 

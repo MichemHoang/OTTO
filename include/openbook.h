@@ -18,9 +18,9 @@ struct Opening{
 
 template <> //inline
 inline void	HASH_TABLE<Opening, Key>::addEntry		( Key ZobristHash, Opening newEntry	)			{
-    int	 	Hashkey	 =	HashFunction(ZobristHash);
-    auto	search	 =	HashTable.find(Hashkey);
-    if (search	==	HashTable.end())	{		//not in the table
+    int	Hashkey	= HashFunction(ZobristHash);
+    auto search	= HashTable.find(Hashkey);
+    if (search == HashTable.end())	{		//not in the table
         newEntry.PossibleMove[newEntry.Total]	=	newEntry.StoreMove;
         HashTable.insert(std::make_pair(Hashkey, newEntry));
     } else {
@@ -31,8 +31,8 @@ inline void	HASH_TABLE<Opening, Key>::addEntry		( Key ZobristHash, Opening newEn
 
 template <> //inline
 inline bool	HASH_TABLE<Opening, Key>::FindEntry	( Key Hashkey, Opening *Result)  {
-    auto it	=	HashTable.find(HashFunction(Hashkey));
-    if (it	==	HashTable.end())	return false;
+    auto it	= HashTable.find(HashFunction(Hashkey));
+    if (it == HashTable.end()) return false;
     else {
         if (it->second.HashValue	==	Hashkey)	{
             *Result	=	it->second;
@@ -47,7 +47,7 @@ private:
     HASH_TABLE<Opening, Key>OpeningMoves;
 public:
     Book();
-    void Init	();
-    bool FindOpening	(Key Position, Move *PMove);
+    void Init();
+    bool FindOpening(Key Position, Move *PMove);
 };
 #endif

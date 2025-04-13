@@ -27,7 +27,6 @@ public:
     BOARD_C MakeMove (Move to);
     BOARD_C UndoMove (ExtMove undo);
     void ReadFENString(std::string fenString);
-    void PrintAllMove();
 };
 
 #endif
