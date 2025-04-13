@@ -26,12 +26,17 @@ int main(){
     //initialize move data
     INITIALIZE::Mask();
     INITIALIZE::MoveData();
+    InitZoBrist(true);
 
     std::vector<BOARD> boardTest;
     std::vector<BOARD_C> boardcTest;
 
     std::ifstream infile("../test/FenString.txt");
     std::string fenString;
+    Search alphaBeta, alphaBeta1;
+    BOARD_C puzzle1;
+    BOARD puzzle11;
+    ExtMove result;
     
     while (std::getline(infile, fenString))
     {
@@ -47,7 +52,29 @@ int main(){
         ExtMove MoveList[MAX_MOVES];
         BENCHMARK(GENERATE::AllMoves, "GENERATE::AllMoves", 100000, boardcTest[i], boardcTest[i].Side_to_move);
         BENCHMARK(GENERATE::AllMove, "GENERATE::AllMove", 100000, boardTest[i], MoveList, boardTest[i].Side_to_move);
-        BENCHMARK(GENERATE::AllMoves_MP, "GENERATE::AllMoves_MP", 100000, boardcTest[i], boardcTest[i].Side_to_move);
+        BENCHMARK(EVALUATION::EvaluateBoard, "EVALUATION::EvaluateBoard", 100000, boardcTest[i], boardcTest[i].Side_to_move);
+        BENCHMARK(GetKeyString, "BITSTRING::GetKey", 100000, boardcTest[i]);
         std::cout << "---------------------------------------------------------\n";
     }
+
+    puzzle1.ReadFENString("rnb1k2r/pp2b1pp/2p2pn1/q3P2Q/5p2/PB6/1BPP2PP/RN2K1NR w KQkq - 0 1");
+    alphaBeta.SetTableSize(30000000);
+    alphaBeta.SetPosition(puzzle1);
+    FEN_Op::READ_FEN("rnb1k2r/pp2b1pp/2p2pn1/q3P2Q/5p2/PB6/1BPP2PP/RN2K1NR w KQkq - 0 1",&puzzle11);
+    alphaBeta1.SetTableSize(30000000);
+    alphaBeta1.SetPosition(puzzle11);
+    std::pair<Move, int> RES;
+
+    auto start = std::chrono::high_resolution_clock::now();
+    result = alphaBeta.IterativeDeepening(10, true);
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> duration = end - start;
+    std::cout << "Time taken : " << duration.count() << " seconds\n";
+
+    //-----------------------------------------------------------------------------------------
+    start = std::chrono::high_resolution_clock::now();
+    RES = alphaBeta1.IterativeDeepening(12);
+    end = std::chrono::high_resolution_clock::now();
+    duration = end - start;
+    std::cout << "Time taken : " << duration.count() << " seconds\n";
 }

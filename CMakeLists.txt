@@ -5,6 +5,7 @@ project(OTTO)
 # GoogleTest requires at least C++14
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -Wall -g") # -O3 seems to work best, although debuging might be a pain?
 
 include(FetchContent)
 FetchContent_Declare(
@@ -23,7 +24,7 @@ set(srcs
     src/mt64.cpp
     src/openbook.cpp
     src/search.cpp
-    src/game.cpp
+    src/engine.cpp
     src/zobristhash.cpp
 )
 
@@ -39,7 +40,7 @@ target_include_directories(OTTO PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
-target_link_libraries( OTTO pthread OpenMP::OpenMP_CXX)
+target_link_libraries( OTTO OpenMP::OpenMP_CXX)
 
 # Add the OTTO_main executable -- makeshift game
 add_executable(OTTO_main src/main.cpp)

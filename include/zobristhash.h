@@ -14,7 +14,7 @@ BitString	RandomGenerator();
 
 BitString	GetKey(BOARD A);
 
-BitString	GetKey(BOARD_C board);
+BitString	GetKeyString(BOARD_C board);
 
 void		InitZoBrist(bool On);
 

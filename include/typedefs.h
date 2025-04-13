@@ -44,9 +44,9 @@ const BitBoard 		EMPTY_BRD = 0x0000000000000000;
 const int			MAX_VALUE =	65536;
 const int 			MIN_VALUE =	-65536;
 const std::string	STANDARD  =	"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0";
+const char 			Character [13] =	{'P', 'N', 'B', 'R', 'Q', 'K', 'p', 'n', 'b', 'r', 'q', 'k', '.'};
 
-
-const std::string squares[64] = {
+const std::string 	squares[64] = {
 	"A8", "B8", "C8", "D8", "E8", "F8", "G8", "H8",
 	"A7", "B7", "C7", "D7", "E7", "F7", "G7", "H7",
 	"A6", "B6", "C6", "D6", "E6", "F6", "G6", "H6",
@@ -106,11 +106,11 @@ struct ExtMove {
 	uint8_t getFrom() const {return (move) & 0x3f;}  // value of first 6 bit
     uint8_t getFlags() const {return (move >> 12) & 0x0f;} // value of bit 12 - 15
 	std::string toString(){
-		std::string final = "";
-		std::string	from = squares[move & 0x3F];
-		std::string to = squares[(move & 0xFC0) >> 6];
-		//std::string flags = std::string((move >> 12) & 0xF);
+		std::string	from = squares[(move & 0x3F) + 1];
+		std::string to = squares[(move >> 6 & 0x3f) + 1];
+		std::string flags = std::to_string((move >> 12) & 0xF);
 		std::string quickValue = std::to_string(value);
+		std::string final = from + "->" + to + " flags = " + flags + " Initial value = " + quickValue + "\n";
 		return final;
 	}
 };

@@ -1,7 +1,7 @@
 #include "board.h"
 
-char 	Notation [13] = {'P', 'N', 'B', 'R', 'Q', 'K', 'p', 'n', 'b', 'r', 'q', 'k', '.'};
-char	Castling[5] = {'K', 'Q', 'k', 'q', '-'};
+char Notation[13] = {'P', 'N', 'B', 'R', 'Q', 'K', 'p', 'n', 'b', 'r', 'q', 'k', '.'};
+char Castling[5] = {'K', 'Q', 'k', 'q', '-'};
 uint8_t	Castling_Val[5] = {CastlingKW, CastlingQW, CastlingKB, CastlingQB, 0};
 
 BOARD_C::BOARD_C (){
@@ -20,15 +20,15 @@ void BOARD_C::ReadFENString(std::string fenString){
 	int BrdIter	=	0;
     CurrentBoard[0]	= 0;
     CurrentBoard[1]	= 0;
-	for (int j	=	0; j < 12; j++)	Pieces[j]	=	EMPTY_BRD;
-    for (int t 	=	0; t < 64; t++)	Sq[t]		=	emptySqr;
+	for (int j	=	0; j < 12; j++)	Pieces[j] = EMPTY_BRD;
+    for (int t 	=	0; t < 64; t++)	Sq[t] = emptySqr;
 	int iter = 0;
     for (iter = 0; iter < fenString.length(); iter++){
 		char Mon	=	fenString[iter];
 		if ((int)Mon < 58) {
 			if (Mon != '/') BrdIter	+=	(int)Mon - 48;}
 		else {
-			int Pcs			=	CharToInt(Mon, 1);
+			int Pcs	= CharToInt(Mon, 1);
 			Sq[BrdIter]	= 	Pcs;
 			Pieces[Pcs]	|=	BIT1 >> BrdIter;
 			if (Pcs < 6) 	CurrentBoard[0]	|=	(BIT1 >> BrdIter);	
@@ -46,12 +46,8 @@ void BOARD_C::ReadFENString(std::string fenString){
 		Castling_check	&=	~Castling_Val[Px];
 		iter++;
 	}
-	//yo this seems sus?
 	iter+=5;
-	//std::cout << "fenString = " << fenString << "\n";
-	//std::cout << "fenString[iter] = " << fenString[iter] << "\n";
 	uint8_t	Moves	=	((int)fenString[iter] - 48);
-	//std::cout << "Moves = " << (int)Moves << "\n";
 	iter++;
 	if (iter < fenString.size()){
 		if (fenString[iter]!= ' ') {
@@ -75,11 +71,11 @@ std::string BOARD_C::ToFENString(){
 				counter = 0;
 			}
 		}
-		if (counter != 0)	FEN_STRING	+=	std::to_string(counter);
-		if (i < 7) FEN_STRING	+=	"/";
+		if (counter != 0) 	FEN_STRING += std::to_string(counter);
+		if (i < 7) 			FEN_STRING += "/";
 	}
-	FEN_STRING  +=	" ";
-	int a	=	0;
+	FEN_STRING += " ";
+	int a = 0;
 	Side_to_move	== WHITE? FEN_STRING	+= "w " : FEN_STRING	+= "b ";
 	if ((Castling_check & CastlingKW) != CastlingKW) {FEN_STRING	+=	"K"; a++;}
 	if ((Castling_check & CastlingQW) != CastlingQW) {FEN_STRING	+=	"Q"; a++;}
@@ -89,15 +85,15 @@ std::string BOARD_C::ToFENString(){
 	FEN_STRING	+= " - ";
 	int HalfMoveClock	=	0;
 	FEN_STRING	+= std::to_string(HalfMoveClock) + " ";
-	a	=	(int)No_Ply/2;
+	a = (int)No_Ply/2;
 	FEN_STRING	+= std::to_string(a);
 	return FEN_STRING;
 }
 
 void BOARD_C::PrintBoard(){
     BitOp::PrintSQ(Sq);
-    if (Side_to_move	==	WHITE)	std::cout	<< "WHITE TURN\n";
-    else 							std::cout	<< "BLACK TURN\n";
+    if (Side_to_move == WHITE)	std::cout << "WHITE TURN\n";
+    else 						std::cout << "BLACK TURN\n";
 }
 
 BOARD_C BOARD_C::MakeMove (ExtMove transformer){
@@ -107,11 +103,10 @@ BOARD_C BOARD_C::MakeMove (ExtMove transformer){
 
 BOARD_C BOARD_C::MakeMove (Move transformer){
     BOARD_C newboard = *this;
-    uint8_t	from	=	transformer & 0x3f;
-	uint8_t to		=	transformer >> 6 & 0x3f;
-	uint8_t flag	=	transformer >> 12 & 0x0f;
+    uint8_t	from = transformer & 0x3f;
+	uint8_t to = transformer >> 6 & 0x3f;
+	uint8_t flag = transformer >> 12 & 0x0f;
 
-	//std::cout << "from = " << (int)from << " to = " << (int)to << " flag = " << (int)flag << "\n";
 	if (0 > from || from > 63 || 0 > to || to > 63){
 		//verified input;
 	}
@@ -159,10 +154,6 @@ BOARD_C BOARD_C::MakeMove (Move transformer){
 	newboard.PreviousMove	=	transformer;//
 	newboard.No_Ply++;
 	return newboard;
-}
-
-void BOARD_C::PrintAllMove(){
-
 }
 
 BOARD_C BOARD_C::UndoMove (ExtMove to){
