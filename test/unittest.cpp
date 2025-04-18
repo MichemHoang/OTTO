@@ -10,8 +10,13 @@ protected:
         chessBoard.ReadFENString(STANDARD);
         castlingBoard.ReadFENString("r1b1kb1r/1pppqp2/p1n2n1p/1B2p1p1/4P3/2NPBN2/PPP1QPPP/R3K2R w KQkq - 0 1");
     }
+    BOARD_C fenTestBoard;
     BOARD_C chessBoard;
     BOARD_C castlingBoard;
+
+    std::string invalidFEN1 = "r1b1kb1r/p1n2n1p/1B2p1p1/4P3/2NPBN2/PPP1QPPP/R3K2R w KQkq - 0 1"; //missing one rank
+    std::string invalidFEN2 = "r1b1kb1r/1pppqp2/p1n2n1p/1B2p1p1/4P3/2NPBN2/PPP1QPPP/R3K2R KQkq - 0 1"; //missing side to move
+    std::string invalidFEN3 = "rb1kb1r/1pppqp2/pn2n1p/1B2p1p1/4P3/2NPBN2/PPP1QPPP/R3K2R b KQkq - 0 1"; //missing square(s)
 };
 
 class AlphaBetaTest : public testing::Test {
@@ -40,7 +45,7 @@ protected:
     std::string _mateIn5 = "4rb1k/2pqn2p/6pn/ppp3N1/P1QP2b1/1P2p3/2B3PP/B3RRK1 w - - 0 24";  //use to benchmark more likely cause it might teak a bit of time currently to search to 10 (>10s)
 
     //PUZZLE - tricky position with clear best move.
-    std::string _puzzle1 = "rnb1k2r/pp2b1pp/2p2pn1/q3P2Q/5p2/PB6/1BPP2PP/RN2K1NR w KQkq - 0 1"; 
+    std::string _puzzle1 = "rnb1k2r/pp2b1pp/2p2pn1/q3P2Q/5p2/PB6/1BPP2PP/RN2K1NR w KQkq - 0 1";  //this one actually mate in..12 i believe
 };
 
 TEST_F(BoardTest, GenerateMove) {
@@ -55,6 +60,19 @@ TEST_F(BoardTest, CastlingMove){
     ASSERT_EQ(moveList.size(), 2);
     ASSERT_EQ(moveList[0].getFlags(), MoveType::KING_CASTLE);
     ASSERT_EQ(moveList[1].getFlags(), MoveType::QUEEN_CASTLE);
+}
+
+TEST_F(BoardTest, ReadFenString){
+    bool test1 = fenTestBoard.ReadFENString(invalidFEN1);
+    bool test2 = fenTestBoard.ReadFENString(invalidFEN2);
+    bool test3 = fenTestBoard.ReadFENString(invalidFEN3);
+    bool test4 = fenTestBoard.ReadFENString(STANDARD);
+
+    ASSERT_EQ(test1, false);
+    ASSERT_EQ(test2, false);
+    ASSERT_EQ(test3, false);
+    ASSERT_EQ(test4, true);
+
 }
 
 TEST_F(BoardTest, Enpassant){
@@ -109,4 +127,3 @@ TEST_F(AlphaBetaTest, MateIn10){
     result = alphaBeta.IterativeDeepening(10, true);
     ASSERT_EQ(result.move, 0x369);
 }
-//Another Rose wilts in East Harlem

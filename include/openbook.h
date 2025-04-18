@@ -13,11 +13,11 @@ struct Opening{
 	uint64_t	HashValue;
 	Move		StoreMove;
 	Move		PossibleMove[5];
-	uint8_t		Total	=	0;
+	uint8_t		Total = 0;
 };
 
 template <> //inline
-inline void	HASH_TABLE<Opening, Key>::addEntry		( Key ZobristHash, Opening newEntry	)			{
+inline void	HASH_TABLE<Opening, Key>::addEntry( Key ZobristHash, Opening newEntry	)			{
     int	Hashkey	= HashFunction(ZobristHash);
     auto search	= HashTable.find(Hashkey);
     if (search == HashTable.end())	{		//not in the table
@@ -29,8 +29,8 @@ inline void	HASH_TABLE<Opening, Key>::addEntry		( Key ZobristHash, Opening newEn
     }
 }
 
-template <> //inline
-inline bool	HASH_TABLE<Opening, Key>::FindEntry	( Key Hashkey, Opening *Result)  {
+template <> //inline 
+inline bool	HASH_TABLE<Opening, Key>::FindEntry( Key Hashkey, Opening *Result)  {
     auto it	= HashTable.find(HashFunction(Hashkey));
     if (it == HashTable.end()) return false;
     else {

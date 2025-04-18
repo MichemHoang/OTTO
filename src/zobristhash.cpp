@@ -9,10 +9,6 @@ BitString CastQB;
 BitString BTurn;
 
 unsigned long long init[4]={0x12345ULL, 0x23456ULL, 0x34567ULL, 0x45678ULL}, length=4;
-
-BitString Xoring (BitString String, BitString Xor){
-	return String ^ Xor;
-}
  
 BitString RandomGenerator(){
 	init_by_array64(init, length);

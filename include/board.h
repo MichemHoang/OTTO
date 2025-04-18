@@ -23,10 +23,10 @@ public:
 
     std::string	ToFENString();  //convert to FENString
     void PrintBoard();
-    BOARD_C MakeMove (ExtMove to);
-    BOARD_C MakeMove (Move to);
-    BOARD_C UndoMove (ExtMove undo);
-    void ReadFENString(std::string fenString);
+    BOARD_C MakeMove    (ExtMove to);
+    BOARD_C MakeMove    (Move to);
+    BOARD_C UndoMove    (ExtMove undo);
+    bool ReadFENString  (std::string fenString);
 };
 
 #endif

@@ -22,10 +22,10 @@ private:
 public:
 	Engine();
 	~Engine();
-	void	Timer(int milliseconds);
-	void	SetPosition(std::string fenString);
-	void 	InitEngine();
-	void 	Start(void *GameArg);
+	void	Timer		(int milliseconds);
+	void	SetPosition	(std::string fenString);
+	void 	InitEngine	();
+	void 	Start		(void *GameArg);
 };
 
 #endif 

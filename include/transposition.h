@@ -35,16 +35,15 @@ private:
 	int Size;
 	std::unordered_map<int, T> HashTable;
 public:
-	HASH_TABLE();
- 	HASH_TABLE(int A);
- 	void echo();
- 	void addEntry(HKey ZobristHash, T newEntry);
- 	int	HashFunction( HKey Hashkey)	;
- 	void SetSize(int AS);
- 	int	getSize();
- 	bool FindEntry(HKey Hashkey, T* Result)  ;
- 	void UpdateTable();	// Updating table after every Move so that it wont be filled with old useless entry;
- 	void PrintDatabase();	//just for testing. Aint nobody got time to read 10000000000 entry.
+	HASH_TABLE				();
+ 	HASH_TABLE				(int A);
+ 	void	addEntry		(HKey ZobristHash, T newEntry);
+ 	int		HashFunction	(HKey Hashkey)	;
+ 	void 	SetSize			(int AS);
+ 	int		getSize			();
+ 	bool 	FindEntry		(HKey Hashkey, T* Result)  ;
+ 	void 	UpdateTable		();	// Updating table after every Move so that it wont be filled with old useless entry;
+ 	void 	PrintDatabase	();	//just for testing. Aint nobody got time to read 10000000000 entry.
 };
 
 ///Generic temlate methods implementation
