@@ -1,5 +1,6 @@
 #include "engine.h"
 
+//timeout a search
 void Engine::Timer(int millseconds) {
 	std::this_thread::sleep_for(std::chrono::seconds(millseconds));
 }
@@ -9,6 +10,7 @@ Engine::Engine(){
 }
 
 Engine::~Engine(){
+	//file--socket future planning
 }
 
 void Engine::InitEngine(){

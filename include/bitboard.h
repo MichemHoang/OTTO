@@ -3,6 +3,8 @@
 
 #include "typedefs.h"
 #include <stdint.h>
+#include <sstream>
+#include <regex>
 
 /*
  * BitBoard manipulation
@@ -78,14 +80,13 @@ void	getBoardInfo	( BOARD A );
 }
 
 namespace INITIALIZE{
-void 	MoveData ();
+void 	MoveData();
 void 	Mask	();
 }
 
 namespace FEN_Op{
-void READ_FEN(std::string FEN_STRING, BOARD *A);
-std::string	toFEN(BOARD A);
-bool IsValidFEN(std::string FEN_STRING);
+void READ_FEN		(std::string FEN_STRING, BOARD *A);
+std::string	toFEN	(BOARD A);
 }
 
 #endif

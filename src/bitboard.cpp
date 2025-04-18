@@ -331,6 +331,7 @@ void MoveData(){
 }
 }//endof namespace
 
+//if it works it works
 int	Char_To_int	(char Mx, int ii){
     if (ii == 1)	
 		for (int i = 0; i < 12; i++){if (Mx	==	Character[i]) return i;}
@@ -342,9 +343,9 @@ int	Char_To_int	(char Mx, int ii){
 namespace FEN_Op{
 //Reading FEN_String from a string and convert into Board type
 void READ_FEN(std::string FEN_STRING, BOARD *A) {
-	int BrdIter	=	0;
-    A->CurrentBoard[0]	=	0;
-    A->CurrentBoard[1]	=	0;
+	int BrdIter = 0;
+    A->CurrentBoard[0] = 0;
+    A->CurrentBoard[1] = 0;
 	for (int j = 0; j < 12; j++) A->Pieces[j] =	EMPTY_BRD;
     for (int t = 0; t < 64; t++) A->Sq[t] = emptySqr;
 	int iter = 0;
@@ -367,7 +368,7 @@ void READ_FEN(std::string FEN_STRING, BOARD *A) {
 	iter+=2;
 	FEN_STRING[iter] == 'w'? A->Side_to_move = WHITE: A->Side_to_move = BLACK;
 	iter+=2;
-	A->Castling_check	=	0xEE;
+	A->Castling_check = 0xEE;
 	while (FEN_STRING[iter]!= ' '){
 		int Px = Char_To_int(FEN_STRING[iter], 15);
 		A->Castling_check &= ~Castling_Value[Px];
@@ -414,4 +415,5 @@ std::string	toFEN (BOARD A){
 	FEN_STRING	+= std::to_string(a) + " ";
 	return FEN_STRING;
 }
+
 }//end of namespace

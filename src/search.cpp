@@ -446,7 +446,7 @@ std::pair<Move, int> Search::IterativeDeepening (int MAX_DEPTH){
 		
 	//Iterative deepening search loop
 	shallowSearch = false;
-	for (int depthReduce = 8; depthReduce <= MAX_DEPTH; depthReduce+=2){
+	for (int depthReduce = 6; depthReduce <= MAX_DEPTH; depthReduce+=2){
 		searchNode = 0;
 		OPTIMAL_MOVE = AlphaBeta(position, depthReduce, Alpha, Beta, depthReduce, BoardHashValue, false);
 		TRANS_TABLE.UpdateTable();

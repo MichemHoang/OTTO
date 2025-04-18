@@ -73,7 +73,7 @@ int main(){
 
     //-----------------------------------------------------------------------------------------
     start = std::chrono::high_resolution_clock::now();
-    RES = alphaBeta1.IterativeDeepening(12);
+    RES = alphaBeta1.IterativeDeepening(10);
     end = std::chrono::high_resolution_clock::now();
     duration = end - start;
     std::cout << "Time taken : " << duration.count() << " seconds\n";

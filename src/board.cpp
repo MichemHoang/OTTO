@@ -1,4 +1,6 @@
 #include "board.h"
+#include <ctype.h>
+
 
 char Notation[13] = {'P', 'N', 'B', 'R', 'Q', 'K', 'p', 'n', 'b', 'r', 'q', 'k', '.'};
 char Castling[5] = {'K', 'Q', 'k', 'q', '-'};
@@ -8,54 +10,84 @@ BOARD_C::BOARD_C (){
 	ReadFENString(STANDARD);
 }
 
-int	CharToInt (char Mx, int ii){
-    if (ii == 1)	
-		for (int i = 0; i < 12; i++){if (Mx	==	Notation[i]) return i;}
-	else 			
-		for (int i = 0; i < 5; i++)	{if (Mx	==	Castling[i]) return i;}
+//idk how to explain this in short
+int GetNotationNumber (char piece){
+	for (int i = 0; i < 12; i++) {if (piece	==	Notation[i]) return i;}
 	return -1;
 }
 
-void BOARD_C::ReadFENString(std::string fenString){
-	int BrdIter	=	0;
+int getCastlingNumber(char castling){
+	for (int i = 0; i < 5; i++)	{if (castling	==	Castling[i]) return i;}
+	return -1;
+}
+
+//fixed this to also include verifying input
+bool BOARD_C::ReadFENString(std::string fenString){
+	int piecePosition	= 0;
     CurrentBoard[0]	= 0;
     CurrentBoard[1]	= 0;
-	for (int j	=	0; j < 12; j++)	Pieces[j] = EMPTY_BRD;
-    for (int t 	=	0; t < 64; t++)	Sq[t] = emptySqr;
-	int iter = 0;
-    for (iter = 0; iter < fenString.length(); iter++){
-		char Mon	=	fenString[iter];
-		if ((int)Mon < 58) {
-			if (Mon != '/') BrdIter	+=	(int)Mon - 48;}
+
+	int rankCount = 0;
+	int fileCount = 0;
+
+	for (int i = 0; i < 12; i++) Pieces[i] = EMPTY_BRD;
+    for (int t = 0; t < 64; t++) Sq[t] = emptySqr;
+
+	int position = 0;
+	//read pieces on the board
+    for (position = 0; position < fenString.length(); position++){
+		if ((int)fenString[position] < 58) { //not a character
+			if (fenString[position] != '/') {
+				if (isdigit(fenString[position]))
+					piecePosition += (int)fenString[position] - 48;
+				else return false;
+			} else {
+				rankCount++;
+				if (piecePosition % 8 != 0) return false;
+			}
+		}
 		else {
-			int Pcs	= CharToInt(Mon, 1);
-			Sq[BrdIter]	= 	Pcs;
-			Pieces[Pcs]	|=	BIT1 >> BrdIter;
-			if (Pcs < 6) 	CurrentBoard[0]	|=	(BIT1 >> BrdIter);	
-			else  			CurrentBoard[1]	|=	(BIT1 >> BrdIter);	
-			BrdIter++;		
+			int piece = GetNotationNumber(fenString[position]);
+			if (piece!=-1){	//valid piece notation
+				Sq[piecePosition] = piece;
+				Pieces[piece] |= BIT1 >> piecePosition;
+				if (piece < 6) 	CurrentBoard[0]	|=	(BIT1 >> piecePosition);	
+				else  			CurrentBoard[1]	|=	(BIT1 >> piecePosition);	
+				piecePosition++;	
+			} else return false;
 		}
-		if (BrdIter > 63) break;
+		if (piecePosition > 63) break; //doesnt check file and rank properly
 	}
-	iter+=2;
-	fenString[iter] == 'w'? Side_to_move = WHITE: Side_to_move = BLACK;
-	iter+=2;
-	Castling_check	=	0xEE;
-	while (fenString[iter]!= ' '){
-		int Px	=	CharToInt(fenString[iter], 15);
-		Castling_check	&=	~Castling_Val[Px];
-		iter++;
+	position += 2;
+
+	//read side to move
+	if (fenString[position] == 'w') 
+		Side_to_move = WHITE;
+	else if (fenString[position] == 'b') 
+		Side_to_move = BLACK;
+	else return false;
+
+	//read for castling
+	position += 2;
+	Castling_check = 0xEE;
+	while (fenString[position]!= ' '){
+		int Px	=	getCastlingNumber(fenString[position]);
+		if (Px != -1){
+			Castling_check	&=	~Castling_Val[Px];
+			position++;
+		} else return false;
 	}
-	iter+=5;
-	uint8_t	Moves	=	((int)fenString[iter] - 48);
-	iter++;
-	if (iter < fenString.size()){
-		if (fenString[iter]!= ' ') {
+	position+=5; //why 5?
+	uint8_t	Moves = ((int)fenString[position] - 48);
+	position++;
+	if (position < fenString.size()){
+		if (isdigit(fenString[position])) {
 			Moves	*=	10;
-			Moves	+=	(int)fenString[iter] - 48; //clgt Michem?? 
+			Moves	+=	(int)fenString[position] - 48; //ascii char to int basically
 		}
 	}
-	No_Ply	=	Moves*2;
+	No_Ply = Moves*2;
+	return true;
 }
 
 std::string BOARD_C::ToFENString(){
@@ -109,6 +141,7 @@ BOARD_C BOARD_C::MakeMove (Move transformer){
 
 	if (0 > from || from > 63 || 0 > to || to > 63){
 		//verified input;
+		return newboard;
 	}
 	if (newboard.Sq[from] == (wR + 6*newboard.Side_to_move)){
 		if 		(from	==	(63 - (56*newboard.Side_to_move)))	newboard.Castling_check |=	0x08 << (4*newboard.Side_to_move);
@@ -122,7 +155,7 @@ BOARD_C BOARD_C::MakeMove (Move transformer){
 	newboard.Sq[to]		=	newboard.Sq[from];
 	newboard.Sq[from]	=	emptySqr; 
 	if (flag	==	KING_CASTLE){
-		newboard.Pieces[newboard.Side_to_move*6 +	wR]	=	(newboard.Pieces[newboard.Side_to_move*6 +	wR]	& ~(BIT1 >> (from + 3))) | (BIT1 >> (from + 1));
+		newboard.Pieces[newboard.Side_to_move*6 +	wR]	=	(newboard.Pieces[newboard.Side_to_move*6 + wR] & ~(BIT1 >> (from + 3))) | (BIT1 >> (from + 1));
 		newboard.Sq[from + 1]	=	newboard.Sq[from + 3];
 		newboard.Sq[from + 3]	=	emptySqr;
 		newboard.Castling_check	|=	( 0xE << (newboard.Side_to_move*4));
@@ -136,7 +169,7 @@ BOARD_C BOARD_C::MakeMove (Move transformer){
 	if (flag > 7) {
 		newboard.Pieces[newboard.Side_to_move]	^=	(BIT1 >> to);
 		newboard.Pieces[(flag - 8) % 4 + 1 + 6*newboard.Side_to_move]		|=	(BIT1 >> to);
-		newboard.Sq[to]		=	(flag - 8) % 4 + 1 + 6*newboard.Side_to_move;
+		newboard.Sq[to] = (flag - 8) % 4 + 1 + 6*newboard.Side_to_move;
 	}
 	if (flag == ENPASSANT){
 		if (newboard.Side_to_move == WHITE){
